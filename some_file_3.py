@@ -1,18 +1,27 @@
 import tensorflow as tf
-# from retry import retry
+from retry import retry
 import some_file_2
 import some_file_1
 import numpy as np
 
 # number of training and test samples
-n_train_samples = 100
+n_train_samples = 4
 n_test_samples = 20
 # number of params estimated
 n_params = 2
+# number of epcohs
+n_epochs = 20
+# batch size
+batch_size = 4
+
+# TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
 
 
-# @retry(Exception, tries=10, delay=0, backoff=0)
+@retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_training_data():
+
+    # printing to debug
+    print("\nTraining data is being generated\n")
 
     # generate training data
     some_file_2.save_data(file_name_data="training_data",
@@ -27,11 +36,17 @@ def generate_training_data():
     training_data = tf.convert_to_tensor(training_data)
     training_params = tf.convert_to_tensor(training_params)
 
+    # printing to debug
+    print("\nTraining data has been generated")
+
     return training_data, training_params
 
 
-# @retry(Exception, tries=10, delay=0, backoff=0)
+@retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_testing_data():
+
+    # printing to debug
+    print("\nTesting data is being generated\n")
 
     # generate and save testing data
     some_file_2.save_data(file_name_data="testing_data",
@@ -45,6 +60,9 @@ def generate_testing_data():
     testing_params = some_file_2.load_data("testing_params")
     testing_data = tf.convert_to_tensor(testing_data)
     testing_params = tf.convert_to_tensor(testing_params)
+
+    # printing to debug
+    print("\nTesting data has been generated\n")
 
     return testing_data, testing_params
 
@@ -66,16 +84,20 @@ model = tf.keras.Sequential([
 model.compile(optimizer=tf.optimizers.Adam(),
               loss=tf.losses.MeanAbsoluteError(),
               metrics=[tf.metrics.RootMeanSquaredError()])
-# train the model and generate new data at the end of each epoch
+# train the model and generate new data at the end of every other epoch
 loss = []
-for i in range(1):
+for i in range(n_epochs):
+    # print start of epoch
+    print(f"\nThis is the start of epoch: {i}\n")
     # load training data
     training_data, training_params = generate_training_data()
     # train the model for 100 epochs
-    history = model.fit(x=training_data, y=training_params, batch_size=5,
+    history = model.fit(x=training_data, y=training_params, batch_size=batch_size,
                         epochs=2)
     # save the loss
     loss.append(history.history["loss"])
+    # print end of epoch
+    print(f"\nThis is the end of epoch: {i}\n")
 
 # convert loss to numpy array
 loss = np.array([nums for lists in loss for nums in lists])
