@@ -12,7 +12,7 @@ from retry import retry
 class Spatial:
     """This class is used for generating and visualizing spatial data."""
 
-    def __init__(self, n_points=1024, distance_metric="euclidean", variance=1.0,
+    def __init__(self, n_points=256, distance_metric="euclidean", variance=1.0,
                  smoothness=1.5, spatial_range=0.5, nugget=0,
                  covariance_type="matern", realizations=1):
         self.n_points = n_points
@@ -57,7 +57,7 @@ class Spatial:
     @staticmethod
     def compute_covariance(covariance_type, distance_matrix,
                            variance, smoothness, spatial_range, nugget,
-                           n_points=1024):
+                           n_points=256):
         """Computes the covariance matrix given the distance and covariance_type"""
         if covariance_type == 'matern':
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
@@ -76,7 +76,7 @@ class Spatial:
     # @staticmethod
     # def compute_covariance2(covariance_type, distance_matrix,
     #                         variance, smoothness, spatial_range, nugget,
-    #                         n_points=1024):
+    #                         n_points=256):
     #     """Computes the covariance matrix given the distance and covariance_type"""
     #     # distance_matrix = tf.Variable
     #     smoothness = tf.Variable
@@ -103,7 +103,7 @@ class Spatial:
     # @staticmethod
     # def compute_covariance3(covariance_type, distance_matrix,
     #                         variance, smoothness, spatial_range, nugget,
-    #                         n_points=1024):
+    #                         n_points=256):
     #     """Computes the covariance matrix given the distance and covariance_type"""
     #     if covariance_type == 'matern':
     #         first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
@@ -168,7 +168,7 @@ class Optimization(Spatial):
                  estimate_spatial_range=True, estimate_smoothness=False,
                  estimate_nugget=False, variance=1.0, spatial_range=0.2,
                  smoothness=1.5, nugget=0.0, covariance_type="matern",
-                 optim_method="gradient-descent", n_points=1024):
+                 optim_method="gradient-descent", n_points=256):
         super().__init__()
         self.estimate_variance = estimate_variance
         self.estimate_spatial_range = estimate_spatial_range
@@ -191,7 +191,7 @@ class Optimization(Spatial):
                                                        smoothness=self.smoothness, nugget=self.nugget)
 
     def objective_function(self, variance, spatial_range,
-                           smoothness, nugget, n_points=1024):
+                           smoothness, nugget, n_points=256):
         """Computes the objective functional"""
         covariance_mat = self.compute_covariance(self.covariance_type, self.distance_matrix,
                                                  variance=variance, smoothness=smoothness,
@@ -207,7 +207,7 @@ class Optimization(Spatial):
 
     # # TODO: this function is a test function which uses tesnorflow tensors
     # def objective_function2(self, variance, spatial_range,
-    #                         smoothness, nugget, n_points=1024):
+    #                         smoothness, nugget, n_points=256):
     #     """Computes the objective functional"""
     #     covariance_mat = self.compute_covariance2(self.covariance_type, self.distance_matrix,
     #                                               variance=variance, smoothness=smoothness,
@@ -223,7 +223,7 @@ class Optimization(Spatial):
 
     # # TODO: this function is a test function which uses pytorch tensors
     # def objective_function3(self, variance, spatial_range,
-    #                         smoothness, nugget, n_points=1024):
+    #                         smoothness, nugget, n_points=256):
     #     """Computes the objective functional"""
     #     covariance_mat = self.compute_covariance3(self.covariance_type, self.distance_matrix,
     #                                               variance=variance, smoothness=smoothness,

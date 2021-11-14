@@ -22,7 +22,7 @@ def generate_training_data():
 
     # load training data
     training_data = some_file_2.load_data("training_data").T
-    training_data = training_data.reshape((n_train_samples ** n_params, 32, 32, 1))
+    training_data = training_data.reshape((n_train_samples ** n_params, 16, 16, 1))
     training_params = some_file_2.load_data("training_params")
     training_data = tf.convert_to_tensor(training_data)
     training_params = tf.convert_to_tensor(training_params)
@@ -41,7 +41,7 @@ def generate_testing_data():
 
     # load testing data
     testing_data = some_file_2.load_data("testing_data").T
-    testing_data = testing_data.reshape((n_test_samples ** n_params, 32, 32, 1))
+    testing_data = testing_data.reshape((n_test_samples ** n_params, 16, 16, 1))
     testing_params = some_file_2.load_data("testing_params")
     testing_data = tf.convert_to_tensor(testing_data)
     testing_params = tf.convert_to_tensor(testing_params)
@@ -54,7 +54,7 @@ testing_data, testing_params = generate_testing_data()
 
 # make a NN
 model = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(filters=32, kernel_size=10, input_shape=(32, 32, 1), activation="relu",
+    tf.keras.layers.Conv2D(filters=32, kernel_size=10, input_shape=(16, 16, 1), activation="relu",
                            data_format="channels_last"),
     tf.keras.layers.Conv2D(filters=32, kernel_size=5, activation="relu"),
     tf.keras.layers.Conv2D(filters=32, kernel_size=3, activation="relu"),
@@ -95,7 +95,7 @@ for i in range(n_test_samples ** n_params):
     #  that was not saved get distance matrix but that should not make much or any difference
     dist_mat = some_file_1.Spatial().distance_matrix
     # get observations and convert to numpy array
-    observations = testing_data[i, :].numpy().reshape((1024, -1))
+    observations = testing_data[i, :].numpy().reshape((256, -1))
     # generate a model given the observations and the distance
     model = some_file_1.Optimization(observations=observations,
                                      distance_matrix=dist_mat,
