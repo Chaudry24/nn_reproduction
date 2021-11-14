@@ -10,7 +10,7 @@ n_test_samples = 20
 # number of params estimated
 n_params = 2
 # number of epcohs
-n_epochs = 20
+n_epochs = 10000
 # batch size
 batch_size = 4
 
