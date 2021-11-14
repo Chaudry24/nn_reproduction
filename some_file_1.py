@@ -3,9 +3,10 @@ import numpy as np
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
 import matplotlib.pyplot as plt
-import tensorflow as tf
-import autograd
-import torch
+from retry import retry
+# import tensorflow as tf
+# import autograd
+# import torch
 
 
 class Spatial:
@@ -119,6 +120,7 @@ class Spatial:
     #     else:
     #         pass
 
+    @retry(Exception, tries=-1, backoff=0, delay=0)
     def observations(self):
         """Returns observations from a GP with a given covariance"""
         if self.realizations == 1:

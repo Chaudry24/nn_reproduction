@@ -1,17 +1,17 @@
 import tensorflow as tf
-from retry import retry
+# from retry import retry
 import some_file_2
 import some_file_1
 import numpy as np
 
 # number of training and test samples
-n_train_samples = 3
-n_test_samples = 2
+n_train_samples = 100
+n_test_samples = 20
 # number of params estimated
 n_params = 2
 
 
-@retry(Exception, tries=10, delay=0, backoff=0)
+# @retry(Exception, tries=10, delay=0, backoff=0)
 def generate_training_data():
 
     # generate training data
@@ -30,7 +30,7 @@ def generate_training_data():
     return training_data, training_params
 
 
-@retry(Exception, tries=10, delay=0, backoff=0)
+# @retry(Exception, tries=10, delay=0, backoff=0)
 def generate_testing_data():
 
     # generate and save testing data
