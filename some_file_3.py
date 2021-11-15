@@ -6,13 +6,17 @@ import numpy as np
 
 # number of training and test samples
 n_train_samples = 8
-n_test_samples = 20
+n_test_samples = 8
+n_test_samples = 2
+n_train_samples = 4
 # number of params estimated
 n_params = 2
 # number of epcohs
 n_epochs = 10000
+n_epochs = 1
 # batch size
 batch_size = 16
+batch_size = 2
 
 # TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
 
@@ -118,7 +122,7 @@ loss = np.array([nums for lists in loss for nums in lists])
 with open("training_loss.npy", mode="wb") as loss_info:
     np.save(loss_info, loss)
 
-# get NN predictions (outputs a numpy array)
+# get NN predictions for test set (outputs a numpy array)
 preds = model.predict(x=testing_data)
 
 # save NN predictions
@@ -126,7 +130,7 @@ with open("predictions_NN.npy", mode="wb") as file:
     np.save(file, preds)
 
 # generate some data to get the distance matrix
-dist_mat = some_file_1.Spatial().generate_grid()
+dist_mat = some_file_1.Spatial().distance_matrix
 
 # use preds list to save the predictions of MLE
 preds = []
