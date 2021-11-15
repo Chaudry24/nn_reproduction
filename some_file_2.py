@@ -1,11 +1,14 @@
 import some_file_1
 import numpy as np
+from retry import retry
+import os
 
 # TODO: save distance matrix for testing data
 
 
+@retry(Exception, tries=-1, delay=0, backoff=0)
 def save_data(file_name_data="tmp_data_file", file_name_params="tmp_params_file",
-              file_path=".", sample_variance=False, sample_spatial_range=True,
+              file_path="./data", sample_variance=False, sample_spatial_range=True,
               sample_smoothness=False, sample_nugget=False,
               variance=1.0, spatial_range=0.2,
               smoothness=1.2, nugget=0.0,
@@ -321,8 +324,14 @@ def save_data(file_name_data="tmp_data_file", file_name_params="tmp_params_file"
             np.save(file, data)
 
 
-def load_data(file_name="tmp_file", file_path="."):
+def load_data(file_name="tmp_file", file_path="./data", is_testing=False):
     """This function loads the data"""
-    with open(f"{file_path}/{file_name}.npy", mode="rb") as file:
-        return np.load(file)
+    # load data
+    with open(f"{file_path}/{file_name}.npy", mode="rb") as file_temp:
+        # save the data
+        file = np.load(file_temp)
+        # delete data if it is testing data
+        if is_testing:
+            os.remove(f"{file_path}/{file_name}.npy")
+    return file
 

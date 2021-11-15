@@ -1,27 +1,25 @@
 import tensorflow as tf
-from retry import retry
 import some_file_2
 import some_file_1
 import numpy as np
 
 # number of training and test samples
-n_train_samples = 8
-n_test_samples = 8
-n_test_samples = 2
 n_train_samples = 4
+n_test_samples = 4
+# sets of testing data
+total_testing_data = 100
 # number of params estimated
 n_params = 2
-# number of epcohs
+# number of epochs
 n_epochs = 10000
-n_epochs = 1
 # batch size
 batch_size = 16
-batch_size = 2
 
 # TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
+# TOTAL TESTING DATA = n_test_samples ** n_params * total_testing_data
 
 
-@retry(Exception, tries=-1, delay=0, backoff=0)
+# @retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_training_data():
 
     # printing to debug
@@ -46,22 +44,46 @@ def generate_training_data():
     return training_data, training_params
 
 
-@retry(Exception, tries=-1, delay=0, backoff=0)
+# @retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_testing_data():
 
     # printing to debug
     print("\nTesting data is being generated\n")
 
     # generate and save testing data
-    some_file_2.save_data(file_name_data="testing_data",
-                          file_name_params="testing_params",
-                          n_samples=n_test_samples,
-                          sample_spatial_range=True, sample_smoothness=True)
+    for i in range(total_testing_data):
+        some_file_2.save_data(file_name_data=f"testing_data{i}",
+                              file_name_params=f"testing_params{i}",
+                              n_samples=n_test_samples,
+                              sample_spatial_range=True, sample_smoothness=True)
 
-    # load testing data
-    testing_data = some_file_2.load_data("testing_data").T
-    testing_data = testing_data.reshape((n_test_samples ** n_params, 16, 16, 1))
-    testing_params = some_file_2.load_data("testing_params")
+    # save memory for testing data
+    testing_data = np.empty((n_test_samples ** n_params * total_testing_data, 16, 16, 1))
+    testing_params = np.empty((n_test_samples ** n_params * total_testing_data, 2))
+
+    # load and save testing data
+    for i in range(total_testing_data):
+        # load testing data
+        testing_data_temp = some_file_2.load_data(f"testing_data{i}", is_testing=True).T
+        # reshape testing data
+        testing_data_temp = testing_data_temp.reshape((n_test_samples ** n_params, 16, 16, 1))
+        # load testing parameters
+        testing_params_temp = some_file_2.load_data(f"testing_params{i}", is_testing=True)
+        # save testing data
+        testing_data[i * (n_test_samples ** n_params):
+                     (i + 1) * (n_test_samples ** n_params), :, :, :] = testing_data_temp
+        # save testing parameters
+        testing_params[i * (n_test_samples ** n_params):
+                       (i + 1) * (n_test_samples ** n_params), :] = testing_params_temp
+
+    # save testing data
+    with open("./data/testing_data.npy", mode="wb") as file:
+        np.save(file, testing_data)
+    # save testing parameters
+    with open("./data/testing_params.npy", mode="wb") as file:
+        np.save(file, testing_params)
+
+    # convert the saved data to tf tensor
     testing_data = tf.convert_to_tensor(testing_data)
     testing_params = tf.convert_to_tensor(testing_params)
 
@@ -71,7 +93,7 @@ def generate_testing_data():
     return testing_data, testing_params
 
 
-# load testing data
+# generate testing data
 testing_data, testing_params = generate_testing_data()
 
 # make a NN
@@ -113,20 +135,20 @@ for i in range(n_epochs):
     print(f"\nThis is the end of epoch: {i}\n")
 
 # save the trained model
-model.save(filepath="./")
+model.save(filepath="./trained_model")
 
 # convert loss to numpy array
 loss = np.array([nums for lists in loss for nums in lists])
 
 # save the loss
-with open("training_loss.npy", mode="wb") as loss_info:
+with open("./results/training_loss.npy", mode="wb") as loss_info:
     np.save(loss_info, loss)
 
 # get NN predictions for test set (outputs a numpy array)
 preds = model.predict(x=testing_data)
 
 # save NN predictions
-with open("predictions_NN.npy", mode="wb") as file:
+with open("./results/predictions_NN.npy", mode="wb") as file:
     np.save(file, preds)
 
 # generate some data to get the distance matrix
@@ -157,6 +179,6 @@ for i in range(n_test_samples ** n_params):
 preds = np.array(preds)
 
 # save the mle predictions
-with open("predictions_MLE.npy", mode="wb") as file:
+with open("./results/predictions_MLE.npy", mode="wb") as file:
     np.save(file, preds)
 
