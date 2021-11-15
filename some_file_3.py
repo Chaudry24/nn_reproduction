@@ -5,14 +5,14 @@ import some_file_1
 import numpy as np
 
 # number of training and test samples
-n_train_samples = 4
+n_train_samples = 8
 n_test_samples = 20
 # number of params estimated
 n_params = 2
 # number of epcohs
 n_epochs = 10000
 # batch size
-batch_size = 4
+batch_size = 16
 
 # TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
 
@@ -51,7 +51,7 @@ def generate_testing_data():
     # generate and save testing data
     some_file_2.save_data(file_name_data="testing_data",
                           file_name_params="testing_params",
-                          n_samples=n_test_samples, save_distance_mat=True,
+                          n_samples=n_test_samples,
                           sample_spatial_range=True, sample_smoothness=True)
 
     # load testing data
@@ -80,59 +80,79 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(units=200, activation="relu"),
     tf.keras.layers.Dense(units=n_params)
 ])
+
 # compile the NN
 model.compile(optimizer=tf.optimizers.Adam(),
               loss=tf.losses.MeanAbsoluteError(),
               metrics=[tf.metrics.RootMeanSquaredError()])
-# train the model and generate new data at the end of every other epoch
+
+# a list to save the loss of the nn
 loss = []
+
+# train the model and generate new data at the end of every other epoch
 for i in range(n_epochs):
+
     # print start of epoch
     print(f"\nThis is the start of epoch: {i}\n")
+
     # load training data
     training_data, training_params = generate_training_data()
-    # train the model for 100 epochs
+
+    # train the model for 2 epochs with same data
     history = model.fit(x=training_data, y=training_params, batch_size=batch_size,
                         epochs=2)
+
     # save the loss
     loss.append(history.history["loss"])
+
     # print end of epoch
     print(f"\nThis is the end of epoch: {i}\n")
 
+# save the trained model
+model.save(filepath="./")
+
 # convert loss to numpy array
 loss = np.array([nums for lists in loss for nums in lists])
+
 # save the loss
 with open("training_loss.npy", mode="wb") as loss_info:
     np.save(loss_info, loss)
 
-# predictions output a numpy array
+# get NN predictions (outputs a numpy array)
 preds = model.predict(x=testing_data)
+
 # save NN predictions
 with open("predictions_NN.npy", mode="wb") as file:
     np.save(file, preds)
 
+# generate some data to get the distance matrix
+dist_mat = some_file_1.Spatial().generate_grid()
+
+# use preds list to save the predictions of MLE
 preds = []
+
+# solve for parameters using MLE
 for i in range(n_test_samples ** n_params):
-    # TODO: small caveat: the distance matrix does not correspond to the actual distance matrix of the data since
-    #  that was not saved get distance matrix but that should not make much or any difference
-    dist_mat = some_file_1.Spatial().distance_matrix
+
     # get observations and convert to numpy array
     observations = testing_data[i, :].numpy().reshape((256, -1))
-    # generate a model given the observations and the distance
+
+    # generate a model given the observations and the distance matrix
     model = some_file_1.Optimization(observations=observations,
                                      distance_matrix=dist_mat,
                                      estimate_spatial_range=True,
                                      estimate_smoothness=True)
+
     # use maximum likelihood estimate to estimate the parameters
     results = model.optimize()
+
     # save the estimated spatial range and smoothness in a list
     preds.append([results["spatial_range"], results["smoothness"]])
 
-# convert the predictions into a numpy array
+# convert the MLE predictions into a numpy array
 preds = np.array(preds)
+
 # save the mle predictions
 with open("predictions_MLE.npy", mode="wb") as file:
     np.save(file, preds)
-
-
 

@@ -1,10 +1,12 @@
 import some_file_1
 import numpy as np
 
+# TODO: save distance matrix for testing data
+
 
 def save_data(file_name_data="tmp_data_file", file_name_params="tmp_params_file",
               file_path=".", sample_variance=False, sample_spatial_range=True,
-              sample_smoothness=False, sample_nugget=False, save_distance_mat=False,
+              sample_smoothness=False, sample_nugget=False,
               variance=1.0, spatial_range=0.2,
               smoothness=1.2, nugget=0.0,
               variance_range=(0.01, 5.0), spatial_range_range=(0.05, 0.98),

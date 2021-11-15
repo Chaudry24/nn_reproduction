@@ -13,7 +13,7 @@ class Spatial:
     """This class is used for generating and visualizing spatial data."""
 
     def __init__(self, n_points=256, distance_metric="euclidean", variance=1.0,
-                 smoothness=1.5, spatial_range=0.5, nugget=0,
+                 smoothness=1.5, spatial_range=0.5, nugget=0.0,
                  covariance_type="matern", realizations=1):
         self.n_points = n_points
         self.distance_metric = distance_metric
@@ -33,8 +33,10 @@ class Spatial:
 
     def generate_grid(self):
         """Generates a grid on a unit cube"""
-        x = np.random.uniform(0, 1, self.n_points)
-        y = np.random.uniform(0, 1, self.n_points)
+        # x = np.random.uniform(0, 1, self.n_points)
+        # y = np.random.uniform(0, 1, self.n_points)
+        x = np.linspace(0, 1, self.n_points)
+        y = np.linspace(0, 1, self.n_points)
         grid = np.array([x, y]).T
         return grid
 
@@ -236,8 +238,8 @@ class Optimization(Spatial):
     #                               @ torch.tensor(self.observations))
     #     return first_term + second_term + third_term
 
-    def autograd_variance(self):
-        pass
+    # def autograd_variance(self):
+    #     pass
 
     def der_wrt_variance(self, h=1e-2):
         """This function approximates the derivative of the objective function
@@ -297,16 +299,17 @@ class Optimization(Spatial):
 
     def optimize(self, tolerance=1e-6):
         if self.optim_method == "gradient-descent":
-            # initial_gradient = np.array([self.der_wrt_variance(), self.der_wrt_spatial_range(),
-            #                              self.der_wrt_smoothness(), self.der_wrt_nugget()])
+            # used to start while loop
             stopping_condition = False
+            # used to prevent infinite loop
             k = 0
             # step size scaling
             step_size_scale = 0.9
+            # start the gradient descent algorithm
             while (not stopping_condition) and k < 1:
                 # set learning rate
                 step_size = 1e-3
-                # to stop infinite loop
+                # increment to prevent infinite loop
                 k += 1
                 # compute gradients
                 var_der = self.der_wrt_variance()
@@ -334,29 +337,36 @@ class Optimization(Spatial):
                                                               n_points=self.n_points)
                 # to prevent infinite loop
                 j = 0
-                # Armijo condition
-                while new_objective_value > self.objective_value:  # and j < 10:
-                    # j += 1
+                # to guarantee convergence
+                while new_objective_value > self.objective_value and j < 100:
+                    # increment to prevent infinite loop
+                    j += 1
+                    # scale the step size
                     step_size *= step_size_scale
+                    # update parameters
                     variance = self.variance - step_size * var_der
                     spatial_range = self.spatial_range - step_size * spatial_range_der
                     smoothness = self.smoothness - step_size * smoothness_der
                     nugget = self.nugget - step_size * nugget_der
+                    # compute new objective value
                     new_objective_value = self.objective_function(variance=variance, spatial_range=spatial_range,
                                                                   smoothness=smoothness, nugget=nugget,
                                                                   n_points=self.n_points)
+                # set new objective value and parameters
                 self.objective_value = new_objective_value
                 self.variance = variance
                 self.smoothness = smoothness
                 self.spatial_range = spatial_range
                 self.nugget = nugget
-                # current gradient and its norm
+                # calculate current gradient
                 current_gradient = np.array([var_der, spatial_range,
                                              smoothness_der, nugget_der])
+                # calculate the norm of the current gradient
                 norm_current_gradient = np.linalg.norm(current_gradient)
                 # stopping condition
-                # stopping_conditions = (norm_current_gradient / norm_initial_gradient < tolerance) or \
-                #                       (norm_current_gradient < tolerance)
+                # stopping_condition = (norm_current_gradient / norm_initial_gradient < tolerance) or \
+                #                      (norm_current_gradient < tolerance)
+                # use the norm of the current gradient as the stopping condition
                 stopping_condition = norm_current_gradient < tolerance
             return {"variance": self.variance, "spatial_range": self.spatial_range,
                     "smoothness": self.smoothness, "nugget": self.nugget,
