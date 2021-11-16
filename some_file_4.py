@@ -1,41 +1,42 @@
+import some_file_3
 import numpy as np
-from scipy.special import gamma, kv
-import autograd
-import tensorflow as tf
-import torch
+import matplotlib.pyplot as plt
 
-# AUTOGRAD
+some_file_3.run_simulation()
 
-v = 1.0
-x = 10.0
-h = 1e-3
+with open("./results/training_loss.npy", mode="rb") as file:
+    training_loss = np.load(file)
 
-gradient_autograd = autograd.grad(kv)
+with open("./results/predictions_NN.npy", mode="rb") as file:
+    preds_NN = np.load(file)
 
-gradient_approx = (kv(v+h, x) - kv(v, x)) * 1/h
+with open("./results/predictions_MLE.npy", mode="rb") as file:
+    preds_MLE = np.load(file)
 
-# gradient_autograd(v, h).astype(float)  # error
-
-
-# TORCH
-
-# v = torch.tensor(1.0, requires_grad=True)
-# x = torch.tensor(10.0)
-# h = torch.tensor(1e-3)
-#
-# obj_function = kv(v, x)
-# obj_function.backward()
-# torch.autograd.Function.
+with open("./data/training_params.npy", mode="rb") as file:
+    true_vals = np.load(file)
 
 
-# TENSORFLOW
+plt.figure()
+plt.plot(training_loss[19900:20000])
+plt.xlabel("Epochs")
+plt.ylabel("training loss")
 
-v = tf.Variable(1.0)
-x = tf.Variable(10.0)
-h = tf.Variable(1e-3)
+plt.figure()
+plt.scatter(x=preds_NN[:, 0], y=preds_MLE[:, 0])
+plt.xlabel("NN preds for spatial range")
+plt.ylabel("MLE preds for spatial range")
 
-with tf.GradientTape() as tape:
-    obj_fnc = kv(v, x)
+plt.figure()
+plt.scatter(x=preds_NN[:, 1], y=preds_MLE[:, 1])
+plt.xlabel("NN preds for smoothness")
+plt.ylabel("MLE preds for smoothness")
 
-dobj_dv = tape.gradient(obj_fnc, v)
-asd
+bias_NN_spatial_range = np.abs(np.average(preds_NN[:, 0] - true_vals[:, 0]))
+bias_NN_smoothness = np.abs(np.average(preds_NN[:, 1] - true_vals[:, 1]))
+bias_MLE_spatial_range = np.abs(np.average(preds_MLE[:, 0] - true_vals[:, 0]))
+bias_MLE_smoothness = np.abs(np.average(preds_MLE[:, 1] - true_vals[:, 1]))
+
+plt.figure()
+plt.scatter(x=bias_NN_spatial_range, y=bias_MLE_spatial_range, c="r")
+plt.scatter(x=bias_NN_smoothness, y=bias_MLE_smoothness, c="b")

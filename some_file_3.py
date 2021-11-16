@@ -3,7 +3,6 @@ import some_file_2
 import some_file_1
 import numpy as np
 
-print("\na\n")
 # number of training and test samples
 n_train_samples = 4
 n_test_samples = 4
@@ -20,175 +19,167 @@ batch_size = 16
 # TOTAL TESTING DATA = n_test_samples ** n_params * total_testing_data
 
 
-print("\nb\n")
-# @retry(Exception, tries=-1, delay=0, backoff=0)
-def generate_training_data():
+def run_simulation(n_train_samples=n_train_samples, n_test_samples=n_test_samples,
+                   total_testing_data=total_testing_data, n_params=n_params,
+                   n_epochs=n_epochs, batch_size=batch_size):
 
-    # printing to debug
-    print("\nTraining data is being generated\n")
+    # @retry(Exception, tries=-1, delay=0, backoff=0)
+    def generate_training_data():
 
-    # generate training data
-    some_file_2.save_data(file_name_data="training_data",
-                          file_name_params="training_params",
-                          n_samples=n_train_samples,
-                          sample_spatial_range=True, sample_smoothness=True)
+        # printing to debug
+        print("\nTraining data is being generated\n")
 
-    # load training data
-    training_data = some_file_2.load_data("training_data").T
-    training_data = training_data.reshape((n_train_samples ** n_params, 16, 16, 1))
-    training_params = some_file_2.load_data("training_params")
-    training_data = tf.convert_to_tensor(training_data)
-    training_params = tf.convert_to_tensor(training_params)
-
-    # printing to debug
-    print("\nTraining data has been generated")
-
-    return training_data, training_params
-
-
-print("\nc\n")
-# @retry(Exception, tries=-1, delay=0, backoff=0)
-def generate_testing_data():
-
-    # printing to debug
-    print("\nTesting data is being generated\n")
-
-    # generate and save testing data
-    for i in range(total_testing_data):
-        some_file_2.save_data(file_name_data=f"testing_data{i}",
-                              file_name_params=f"testing_params{i}",
-                              n_samples=n_test_samples,
+        # generate training data
+        some_file_2.save_data(file_name_data="training_data",
+                              file_name_params="training_params",
+                              n_samples=n_train_samples,
                               sample_spatial_range=True, sample_smoothness=True)
 
-    # save memory for testing data
-    testing_data = np.empty((n_test_samples ** n_params * total_testing_data, 16, 16, 1))
-    testing_params = np.empty((n_test_samples ** n_params * total_testing_data, 2))
+        # load training data
+        training_data = some_file_2.load_data("training_data").T
+        training_data = training_data.reshape((n_train_samples ** n_params, 16, 16, 1))
+        training_params = some_file_2.load_data("training_params")
+        training_data = tf.convert_to_tensor(training_data)
+        training_params = tf.convert_to_tensor(training_params)
 
-    # load and save testing data
-    for i in range(total_testing_data):
-        # load testing data
-        testing_data_temp = some_file_2.load_data(f"testing_data{i}", is_testing=True).T
-        # reshape testing data
-        testing_data_temp = testing_data_temp.reshape((n_test_samples ** n_params, 16, 16, 1))
-        # load testing parameters
-        testing_params_temp = some_file_2.load_data(f"testing_params{i}", is_testing=True)
+        # printing to debug
+        print("\nTraining data has been generated")
+
+        return training_data, training_params
+
+    # @retry(Exception, tries=-1, delay=0, backoff=0)
+    def generate_testing_data():
+
+        # printing to debug
+        print("\nTesting data is being generated\n")
+
+        # generate and save testing data
+        for i in range(total_testing_data):
+            some_file_2.save_data(file_name_data=f"testing_data{i}",
+                                  file_name_params=f"testing_params{i}",
+                                  n_samples=n_test_samples,
+                                  sample_spatial_range=True, sample_smoothness=True)
+
+        # save memory for testing data
+        testing_data = np.empty((n_test_samples ** n_params * total_testing_data, 16, 16, 1))
+        testing_params = np.empty((n_test_samples ** n_params * total_testing_data, 2))
+
+        # load and save testing data
+        for i in range(total_testing_data):
+            # load testing data
+            testing_data_temp = some_file_2.load_data(f"testing_data{i}", is_testing=True).T
+            # reshape testing data
+            testing_data_temp = testing_data_temp.reshape((n_test_samples ** n_params, 16, 16, 1))
+            # load testing parameters
+            testing_params_temp = some_file_2.load_data(f"testing_params{i}", is_testing=True)
+            # save testing data
+            testing_data[i * (n_test_samples ** n_params):
+                         (i + 1) * (n_test_samples ** n_params), :, :, :] = testing_data_temp
+            # save testing parameters
+            testing_params[i * (n_test_samples ** n_params):
+                           (i + 1) * (n_test_samples ** n_params), :] = testing_params_temp
+
         # save testing data
-        testing_data[i * (n_test_samples ** n_params):
-                     (i + 1) * (n_test_samples ** n_params), :, :, :] = testing_data_temp
+        with open("./data/testing_data.npy", mode="wb") as file:
+            np.save(file, testing_data)
         # save testing parameters
-        testing_params[i * (n_test_samples ** n_params):
-                       (i + 1) * (n_test_samples ** n_params), :] = testing_params_temp
+        with open("./data/testing_params.npy", mode="wb") as file:
+            np.save(file, testing_params)
 
-    # save testing data
-    with open("./data/testing_data.npy", mode="wb") as file:
-        np.save(file, testing_data)
-    # save testing parameters
-    with open("./data/testing_params.npy", mode="wb") as file:
-        np.save(file, testing_params)
+        # convert the saved data to tf tensor
+        testing_data = tf.convert_to_tensor(testing_data)
+        testing_params = tf.convert_to_tensor(testing_params)
 
-    # convert the saved data to tf tensor
-    testing_data = tf.convert_to_tensor(testing_data)
-    testing_params = tf.convert_to_tensor(testing_params)
+        # printing to debug
+        print("\nTesting data has been generated\n")
 
-    # printing to debug
-    print("\nTesting data has been generated\n")
+        return testing_data, testing_params
 
-    return testing_data, testing_params
+    # generate testing data
+    testing_data, testing_params = generate_testing_data()
 
+    # make a NN
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(filters=32, kernel_size=10, input_shape=(16, 16, 1), activation="relu",
+                               data_format="channels_last"),
+        tf.keras.layers.Conv2D(filters=32, kernel_size=5, activation="relu"),
+        tf.keras.layers.Conv2D(filters=32, kernel_size=3, activation="relu"),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(units=200, activation="relu"),
+        tf.keras.layers.Dense(units=n_params)
+    ])
 
-print("\nd\n")
-# generate testing data
-testing_data, testing_params = generate_testing_data()
+    # compile the NN
+    model.compile(optimizer=tf.optimizers.Adam(),
+                  loss=tf.losses.MeanAbsoluteError(),
+                  metrics=[tf.metrics.RootMeanSquaredError()])
 
-print("\ne\n")
-# make a NN
-model = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(filters=32, kernel_size=10, input_shape=(16, 16, 1), activation="relu",
-                           data_format="channels_last"),
-    tf.keras.layers.Conv2D(filters=32, kernel_size=5, activation="relu"),
-    tf.keras.layers.Conv2D(filters=32, kernel_size=3, activation="relu"),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(units=200, activation="relu"),
-    tf.keras.layers.Dense(units=n_params)
-])
+    # a list to save the loss of the nn
+    loss = []
 
-print("\nf\n")
-# compile the NN
-model.compile(optimizer=tf.optimizers.Adam(),
-              loss=tf.losses.MeanAbsoluteError(),
-              metrics=[tf.metrics.RootMeanSquaredError()])
+    # train the model and generate new data at the end of every other epoch
+    for i in range(n_epochs):
 
-# a list to save the loss of the nn
-loss = []
+        # print start of epoch
+        print(f"\nThis is the start of epoch: {i}\n")
 
-print("\ng\n")
-# train the model and generate new data at the end of every other epoch
-for i in range(n_epochs):
+        # load training data
+        training_data, training_params = generate_training_data()
 
-    # print start of epoch
-    print(f"\nThis is the start of epoch: {i}\n")
+        # train the model for 2 epochs with same data
+        history = model.fit(x=training_data, y=training_params, batch_size=batch_size,
+                            epochs=2)
 
-    # load training data
-    training_data, training_params = generate_training_data()
+        # save the loss
+        loss.append(history.history["loss"])
 
-    # train the model for 2 epochs with same data
-    history = model.fit(x=training_data, y=training_params, batch_size=batch_size,
-                        epochs=2)
+        # print end of epoch
+        print(f"\nThis is the end of epoch: {i}\n")
+
+    # save the trained model
+    model.save(filepath="./trained_model")
+
+    # convert loss to numpy array
+    loss = np.array([nums for lists in loss for nums in lists])
 
     # save the loss
-    loss.append(history.history["loss"])
+    with open("./results/training_loss.npy", mode="wb") as loss_info:
+        np.save(loss_info, loss)
 
-    # print end of epoch
-    print(f"\nThis is the end of epoch: {i}\n")
+    # get NN predictions for test set (outputs a numpy array)
+    preds = model.predict(x=testing_data)
 
-print("\nh\n")
-# save the trained model
-model.save(filepath="./trained_model")
+    # save NN predictions
+    with open("./results/predictions_NN.npy", mode="wb") as file:
+        np.save(file, preds)
 
-# convert loss to numpy array
-loss = np.array([nums for lists in loss for nums in lists])
+    # generate some data to get the distance matrix
+    dist_mat = some_file_1.Spatial().distance_matrix
 
-# save the loss
-with open("./results/training_loss.npy", mode="wb") as loss_info:
-    np.save(loss_info, loss)
+    # use preds list to save the predictions of MLE
+    preds = []
 
-# get NN predictions for test set (outputs a numpy array)
-preds = model.predict(x=testing_data)
+    # solve for parameters using MLE
+    for i in range(n_test_samples ** n_params * total_testing_data):
 
-print("\ni\n")
-# save NN predictions
-with open("./results/predictions_NN.npy", mode="wb") as file:
-    np.save(file, preds)
+        # get observations and convert to numpy array
+        observations = testing_data[i, :].numpy().reshape((256, -1))
 
-# generate some data to get the distance matrix
-dist_mat = some_file_1.Spatial().distance_matrix
+        # generate a model given the observations and the distance matrix
+        model = some_file_1.Optimization(observations=observations,
+                                         distance_matrix=dist_mat,
+                                         estimate_spatial_range=True,
+                                         estimate_smoothness=True)
 
-# use preds list to save the predictions of MLE
-preds = []
+        # use maximum likelihood estimate to estimate the parameters
+        results = model.optimize()
 
-print("\nj\n")
-# solve for parameters using MLE
-for i in range(n_test_samples ** n_params):
+        # save the estimated spatial range and smoothness in a list
+        preds.append([results["spatial_range"], results["smoothness"]])
 
-    # get observations and convert to numpy array
-    observations = testing_data[i, :].numpy().reshape((256, -1))
+    # convert the MLE predictions into a numpy array
+    preds = np.array(preds)
 
-    # generate a model given the observations and the distance matrix
-    model = some_file_1.Optimization(observations=observations,
-                                     distance_matrix=dist_mat,
-                                     estimate_spatial_range=True,
-                                     estimate_smoothness=True)
-
-    # use maximum likelihood estimate to estimate the parameters
-    results = model.optimize()
-
-    # save the estimated spatial range and smoothness in a list
-    preds.append([results["spatial_range"], results["smoothness"]])
-
-# convert the MLE predictions into a numpy array
-preds = np.array(preds)
-
-# save the mle predictions
-with open("./results/predictions_MLE.npy", mode="wb") as file:
-    np.save(file, preds)
-
+    # save the mle predictions
+    with open("./results/predictions_MLE.npy", mode="wb") as file:
+        np.save(file, preds)
