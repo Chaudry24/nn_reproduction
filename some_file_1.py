@@ -33,10 +33,10 @@ class Spatial:
 
     def generate_grid(self):
         """Generates a grid on a unit cube"""
-        # x = np.random.uniform(0, 1, self.n_points)
-        # y = np.random.uniform(0, 1, self.n_points)
+        # generate x and y coordinates
         x = np.linspace(0, 1, self.n_points)
         y = np.linspace(0, 1, self.n_points)
+        # concatenate the coordinates to get a grid
         grid = np.array([x, y]).T
         return grid
 
@@ -46,13 +46,18 @@ class Spatial:
         great circle distances i.e. distance_matrix / max_distance
         WARNING: MAKE SURE THAT DATA IN RADIANS BEFORE USING GREAT CIRCLE
         METRIC."""
+        # write the domain as n_points by 2 matrix
         domain = np.array([x_coords, y_coords]).T
         if distance_metric == 'euclidean':
+            # compute euclidean distance
             distance_matrix = sklearn.metrics.pairwise.euclidean_distances(domain)
+            # normalize by max distance
             max_distance = np.max(distance_matrix)
             return distance_matrix / max_distance
         elif distance_metric == 'great_circle':
+            # compute haversine distance
             distance_matrix = sklearn.metrics.pairwise.haversine_distances(domain)
+            # normalize by max distance
             max_distance = np.max(distance_matrix)
             return distance_matrix / max_distance
 
@@ -62,12 +67,16 @@ class Spatial:
                            n_points=256):
         """Computes the covariance matrix given the distance and covariance_type"""
         if covariance_type == 'matern':
+            # compute first three terms
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
             second_term = (distance_matrix / spatial_range) ** smoothness
             third_term = kv(smoothness, distance_matrix / spatial_range)
+            # multiply to get matern covariance
             matern_covariance = first_term * second_term * third_term
+            # replace inf and nan on the diagonals by the variance
             matern_covariance = np.nan_to_num(matern_covariance, copy=True,
                                               posinf=variance, nan=variance)
+            # add nugget if it is present
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
             # add a small perturbation/nugget effect for numerical stability
@@ -127,29 +136,40 @@ class Spatial:
     def observations(self):
         """Returns observations from a GP with a given covariance"""
         if self.realizations == 1:
+            # generate iid normal vector
             iid_data = np.random.randn(self.n_points, 1)
+            # find lower cholesky decomposition of covariance matrix
             chol_decomp_lower = np.linalg.cholesky(self.covariance)
+            # multiply the iid data by lower cholesky to get correlated data
             observed_data = chol_decomp_lower @ iid_data
             return observed_data
         elif self.realizations > 1:
+            # initialize memory for observed data
             observed_data = np.zeros((self.realizations, self.n_points, self.n_points))
+            # find lower cholesky decomposition of covariance matrix
             chol_decomp_lower = np.linalg.cholesky(self.covariance)
             # TODO: parallelize this loop
             for i in range(self.realizations):
+                # generate iid normal vector
                 iid_data = np.random.randn(self.n_points, 1)
+                # save each realization of correlated vector by multiplying to lower cholesky
                 observed_data[i, :, :] = chol_decomp_lower @ iid_data
         else:
             return SyntaxError("realizations need to be greater than or equal to 1")
 
     def plot_observed_data(self):
         """Makes a scatter plot of the observed data"""
+        # get x and y coordinates
         x_coord = self.domain[:, 0]
         y_coord = self.domain[:, 1]
         if self.realizations == 1:
+            # the color of the scatter plot is the data
             colors = self.observed_data.reshape(1, -1)
+            # plot the scatter plot on x-y space
             plt.scatter(x=x_coord, y=y_coord, c=colors)
         elif self.realizations > 1:
             # TODO: parallelize this loop
+            # same as above but plots more than one plot
             for i in range(self.realizations):
                 colors = self.observed_data[i, :, :].reshape(-1, 1)
                 plt.figure(num=i)
@@ -158,8 +178,11 @@ class Spatial:
 
     def plot_covariogram(self):
         """Makes a scatter plot of the covariogram"""
+        # reshape covariance matrix into a vector
         covariance = self.covariance.reshape(-1, 1)
+        # reshape distance matrix into a vector
         distance_mat = self.distance_matrix.reshape(-1, 1)
+        # make a scatter plot
         plt.scatter(x=distance_mat, y=covariance, c="red")
 
 
@@ -196,14 +219,20 @@ class Optimization(Spatial):
     def objective_function(self, variance, spatial_range,
                            smoothness, nugget, n_points=256):
         """Computes the objective functional"""
+        # compute the covariance matrix
         covariance_mat = self.compute_covariance(self.covariance_type, self.distance_matrix,
                                                  variance=variance, smoothness=smoothness,
                                                  spatial_range=spatial_range, nugget=nugget,
                                                  n_points=n_points)
+        # compute lower cholesky matrix
         lower_cholesky = np.linalg.cholesky(covariance_mat)
+        # the first term of the negative log likelihood function
         first_term = n_points / 2.0 * np.log(2.0 * np.pi)
+        # compute the log determinant term
         log_determinant_term = 2.0 * np.trace(np.log(lower_cholesky))
+        # the second term of the negative log likelihood function
         second_term = 0.5 * log_determinant_term
+        # the third term of the negative log likelihood function
         third_term = float(0.5 * self.observations.T @ np.linalg.inv(covariance_mat)
                            @ self.observations)
         return first_term + second_term + third_term
@@ -247,6 +276,7 @@ class Optimization(Spatial):
         """This function approximates the derivative of the objective function
         with respect to variance using the finite difference approximation"""
         if self.estimate_variance:
+            # finite difference estimate of derivative wrt variance
             dobj_dvar = (self.objective_function(variance=self.variance + h, spatial_range=self.spatial_range,
                                                  smoothness=self.smoothness, nugget=self.nugget,
                                                  n_points=self.n_points) -
@@ -261,6 +291,7 @@ class Optimization(Spatial):
         """This function approximates the derivative of the objective function
                 with respect to spatial range using the finite difference approximation"""
         if self.estimate_spatial_range:
+            # finite difference estimate of derivative wrt spatial range
             dobj_dspatialrange = (self.objective_function(variance=self.variance, spatial_range=self.spatial_range + h,
                                                           smoothness=self.smoothness, nugget=self.nugget,
                                                           n_points=self.n_points) -
@@ -275,6 +306,7 @@ class Optimization(Spatial):
         """This function approximates the derivative of the objective function
                 with respect to smoothness using the finite difference approximation"""
         if self.estimate_smoothness:
+            # finite difference estimate of derivative wrt smoothness
             dobj_dsmoothness = (self.objective_function(variance=self.variance, spatial_range=self.spatial_range,
                                                         smoothness=self.smoothness + h, nugget=self.nugget,
                                                         n_points=self.n_points) -
@@ -288,6 +320,7 @@ class Optimization(Spatial):
     def der_wrt_nugget(self, h=1e-2):
         """This function approximates the derivative of the objective function
                 with respect to nugget using the finite difference approximation"""
+        # finite difference estimate of derivative wrt nugget
         if self.estimate_nugget:
             dobj_dnugget = (self.objective_function(variance=self.variance, spatial_range=self.spatial_range,
                                                     smoothness=self.smoothness, nugget=self.nugget + h,
@@ -308,7 +341,7 @@ class Optimization(Spatial):
             # step size scaling
             step_size_scale = 0.9
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 1:
+            while (not stopping_condition) and k < 1000:
                 # set learning rate
                 step_size = 1e-3
                 # increment to prevent infinite loop
