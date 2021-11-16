@@ -1,8 +1,5 @@
-import some_file_3
 import numpy as np
 import matplotlib.pyplot as plt
-
-some_file_3.run_simulation()
 
 with open("./results/training_loss.npy", mode="rb") as file:
     training_loss = np.load(file)

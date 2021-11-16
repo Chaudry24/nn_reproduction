@@ -183,3 +183,7 @@ def run_simulation(n_train_samples=n_train_samples, n_test_samples=n_test_sample
     # save the mle predictions
     with open("./results/predictions_MLE.npy", mode="wb") as file:
         np.save(file, preds)
+
+
+run_simulation()
+

@@ -10,4 +10,4 @@
 #SBATCH --mail-type=END
 
 module load python/3.9
-python some_file_3.py
+python some_file_4.py
