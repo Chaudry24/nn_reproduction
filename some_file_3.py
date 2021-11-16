@@ -3,6 +3,7 @@ import some_file_2
 import some_file_1
 import numpy as np
 
+print("\na\n")
 # number of training and test samples
 n_train_samples = 4
 n_test_samples = 4
@@ -19,6 +20,7 @@ batch_size = 16
 # TOTAL TESTING DATA = n_test_samples ** n_params * total_testing_data
 
 
+print("\nb\n")
 # @retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_training_data():
 
@@ -44,6 +46,7 @@ def generate_training_data():
     return training_data, training_params
 
 
+print("\nc\n")
 # @retry(Exception, tries=-1, delay=0, backoff=0)
 def generate_testing_data():
 
@@ -93,9 +96,11 @@ def generate_testing_data():
     return testing_data, testing_params
 
 
+print("\nd\n")
 # generate testing data
 testing_data, testing_params = generate_testing_data()
 
+print("\ne\n")
 # make a NN
 model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(filters=32, kernel_size=10, input_shape=(16, 16, 1), activation="relu",
@@ -107,6 +112,7 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(units=n_params)
 ])
 
+print("\nf\n")
 # compile the NN
 model.compile(optimizer=tf.optimizers.Adam(),
               loss=tf.losses.MeanAbsoluteError(),
@@ -115,6 +121,7 @@ model.compile(optimizer=tf.optimizers.Adam(),
 # a list to save the loss of the nn
 loss = []
 
+print("\ng\n")
 # train the model and generate new data at the end of every other epoch
 for i in range(n_epochs):
 
@@ -134,6 +141,7 @@ for i in range(n_epochs):
     # print end of epoch
     print(f"\nThis is the end of epoch: {i}\n")
 
+print("\nh\n")
 # save the trained model
 model.save(filepath="./trained_model")
 
@@ -147,6 +155,7 @@ with open("./results/training_loss.npy", mode="wb") as loss_info:
 # get NN predictions for test set (outputs a numpy array)
 preds = model.predict(x=testing_data)
 
+print("\ni\n")
 # save NN predictions
 with open("./results/predictions_NN.npy", mode="wb") as file:
     np.save(file, preds)
@@ -157,6 +166,7 @@ dist_mat = some_file_1.Spatial().distance_matrix
 # use preds list to save the predictions of MLE
 preds = []
 
+print("\nj\n")
 # solve for parameters using MLE
 for i in range(n_test_samples ** n_params):
 
