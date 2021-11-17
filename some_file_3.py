@@ -6,14 +6,19 @@ import numpy as np
 # number of training and test samples
 n_train_samples = 4
 n_test_samples = 4
+n_train_samples = 2
+n_test_samples = 1
 # sets of testing data
 total_testing_data = 100
+total_testing_data = 3
 # number of params estimated
 n_params = 2
 # number of epochs
 n_epochs = 10000
+n_epochs = 2
 # batch size
 batch_size = 16
+batch_size = 2
 
 # TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
 # TOTAL TESTING DATA = n_test_samples ** n_params * total_testing_data
@@ -161,6 +166,9 @@ def run_simulation(n_train_samples=n_train_samples, n_test_samples=n_test_sample
 
     # solve for parameters using MLE
     for i in range(n_test_samples ** n_params * total_testing_data):
+        
+        # print the start of the MLE for current sample
+        print(f"\nThis is the start of MLE on sample no: {i}\n")
 
         # get observations and convert to numpy array
         observations = testing_data[i, :].numpy().reshape((256, -1))
@@ -176,6 +184,9 @@ def run_simulation(n_train_samples=n_train_samples, n_test_samples=n_test_sample
 
         # save the estimated spatial range and smoothness in a list
         preds.append([results["spatial_range"], results["smoothness"]])
+
+        # print the end of the MLE for current sample
+        print(f"\nThis is the end of MLE on sample no: {i}\n")
 
     # convert the MLE predictions into a numpy array
     preds = np.array(preds)
