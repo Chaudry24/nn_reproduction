@@ -6,19 +6,14 @@ import numpy as np
 # number of training and test samples
 n_train_samples = 4
 n_test_samples = 4
-n_train_samples = 2
-n_test_samples = 1
 # sets of testing data
 total_testing_data = 100
-total_testing_data = 3
 # number of params estimated
 n_params = 2
 # number of epochs
 n_epochs = 10000
-n_epochs = 2
 # batch size
 batch_size = 16
-batch_size = 2
 
 # TOTAL TRAIN SAMPLES = n_train_samples ** n_params * n_epochs
 # TOTAL TESTING DATA = n_test_samples ** n_params * total_testing_data
@@ -194,6 +189,7 @@ def run_simulation(n_train_samples=n_train_samples, n_test_samples=n_test_sample
     # save the mle predictions
     with open("./results/predictions_MLE.npy", mode="wb") as file:
         np.save(file, preds)
+
 
 run_simulation()
 

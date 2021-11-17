@@ -226,7 +226,7 @@ class Optimization(Spatial):
                                                  n_points=n_points)
         # compute lower cholesky matrix
         lower_cholesky = np.linalg.cholesky(covariance_mat)
-        # add a small perturbation to lower cholesky to prevent divide by zero error
+        # add a small perturbation to lower cholesky for stability
         lower_cholesky += 1e-3 * np.eye(n_points)
         # the first term of the negative log likelihood function
         first_term = n_points / 2.0 * np.log(2.0 * np.pi)
@@ -334,7 +334,7 @@ class Optimization(Spatial):
         else:
             return 0.0
 
-    def optimize(self, tolerance=1e-6):
+    def optimize(self, tolerance=5e-4):
         if self.optim_method == "gradient-descent":
             # print the start of optimization
             print("\nThis is the start of MLE optimization\n")
@@ -345,7 +345,7 @@ class Optimization(Spatial):
             # step size scaling
             step_size_scale = 0.9
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 1000:
+            while (not stopping_condition) and k < 5000:
                 # print the start of gradient descent
                 print(f"\nGradient descent step for the {k}th time\n")
                 # set learning rate
