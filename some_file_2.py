@@ -11,7 +11,7 @@ def save_data(file_name_data="tmp_data_file", file_name_params="tmp_params_file"
               variance=1.0, spatial_range=0.2,
               smoothness=1.0, nugget=0.15,
               variance_range=(0.01, 5.0), spatial_range_range=(0.01, 0.60),
-              smoothness_range=(0.05, 4.0), nugget_range=(0.0, 10.0),
+              smoothness_range=(0.05, 4.0), nugget_range=(0.01, 2.0),
               n_samples=10):
 
     """This function samples parameters from a given range.

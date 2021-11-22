@@ -309,7 +309,7 @@ class Optimization(Spatial):
         else:
             return 0.0
 
-    def optimize(self, tolerance=5e-4):
+    def optimize(self, tolerance=1e-3):
         if self.optim_method == "gradient-descent":
             # print the start of optimization
             print("\nThis is the start of MLE optimization\n")
@@ -320,7 +320,7 @@ class Optimization(Spatial):
             # step size scaling
             step_size_scale = 0.9
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 1:
+            while (not stopping_condition) and k < 5000:
                 # print the start of gradient descent
                 print(f"\nGradient descent step for the {k}th time\n")
                 # set learning rate
@@ -354,7 +354,7 @@ class Optimization(Spatial):
                 # to prevent infinite loop
                 j = 0
                 # to guarantee convergence
-                while new_objective_value > self.objective_value and j < 100:
+                while new_objective_value > self.objective_value and j < 200:
                     # increment to prevent infinite loop
                     j += 1
                     # scale the step size
