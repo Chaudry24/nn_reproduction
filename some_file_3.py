@@ -5,15 +5,16 @@ import numpy as np
 
 # number of training and test samples
 n_train_samples = 4
-n_test_samples = 2
+n_test_samples = 3
 # number of realizations
-realizations = 2
+realization1 = 1
+realization2 = 30
 # sets of testing data
-total_testing_data = 5
+total_testing_data = 7
 # number of params estimated
 n_params = 2
 # number of epochs
-n_epochs = 10
+n_epochs = 5
 # batch size
 batch_size = 16
 # spatial coordinates
@@ -24,7 +25,7 @@ spatial_grid = some_file_1.Spatial().domain
 
 
 # @retry(Exception, tries=-1, delay=0, backoff=0)
-def generate_training_data():
+def generate_training_data(realizations=1):
     # printing to debug
     print("\nTraining data is being generated\n")
 
@@ -48,14 +49,14 @@ def generate_training_data():
 
 
 # @retry(Exception, tries=-1, delay=0, backoff=0)
-def generate_testing_data():
+def generate_testing_data(realizations=1):
     # printing to debug
     print("\nTesting data is being generated\n")
 
     # generate and save testing data
     for i in range(total_testing_data):
-        some_file_2.save_data(file_name_data=f"testing_data{i}",
-                              file_name_params=f"testing_params{i}",
+        some_file_2.save_data(file_name_data=f"testing_data{i}_{realizations}",
+                              file_name_params=f"testing_params{i}_{realizations}",
                               n_samples=n_test_samples, realizations=realizations,
                               sample_spatial_range=True, sample_nugget=True)
 
@@ -66,11 +67,11 @@ def generate_testing_data():
     # load and save testing data
     for i in range(total_testing_data):
         # load testing data
-        testing_data_temp = some_file_2.load_data(f"testing_data{i}", is_testing=True)
+        testing_data_temp = some_file_2.load_data(f"testing_data{i}_{realizations}", is_testing=True)
         # reshape testing data
         testing_data_temp = testing_data_temp.reshape((n_test_samples, 16, 16, realizations))
         # load testing parameters
-        testing_params_temp = some_file_2.load_data(f"testing_params{i}", is_testing=True)
+        testing_params_temp = some_file_2.load_data(f"testing_params{i}_{realizations}", is_testing=True)
         # save testing data
         testing_data[i * (n_test_samples):
                      (i + 1) * (n_test_samples), :, :, :] = testing_data_temp
@@ -79,10 +80,10 @@ def generate_testing_data():
                        (i + 1) * (n_test_samples), :] = testing_params_temp
 
     # save testing data
-    with open("./data/testing_data.npy", mode="wb") as file:
+    with open(f"./data/testing_data_{realizations}.npy", mode="wb") as file:
         np.save(file, testing_data)
     # save testing parameters
-    with open("./data/testing_params.npy", mode="wb") as file:
+    with open(f"./data/testing_params_{realizations}.npy", mode="wb") as file:
         np.save(file, testing_params)
 
     # convert the saved data to tf tensor
@@ -95,12 +96,7 @@ def generate_testing_data():
     return testing_data, testing_params
 
 
-# generate testing data
-testing_data, testing_params = generate_testing_data()
-
-
-def run_simulation_field(realizations=realizations,
-                         testing_data=testing_data):
+def run_simulation_field(testing_data, realizations=1):
 
     # make a NN
     model = tf.keras.Sequential([
@@ -129,7 +125,7 @@ def run_simulation_field(realizations=realizations,
         print(f"\nThis is the start of epoch: {i}\n")
 
         # load training data
-        training_data, training_params = generate_training_data()
+        training_data, training_params = generate_training_data(realizations=realizations)
 
         # train the model for 2 epochs with same data
         history = model.fit(x=training_data, y=training_params, batch_size=batch_size,
@@ -159,8 +155,7 @@ def run_simulation_field(realizations=realizations,
         np.save(file, preds)
 
 
-def run_simulation_variogram(realizations=realizations,
-                             testing_data=testing_data):
+def run_simulation_variogram(testing_data, realizations=1):
 
     # convert testing data to a numpy array
     testing_data = testing_data.numpy()
@@ -204,7 +199,7 @@ def run_simulation_variogram(realizations=realizations,
         print(f"\nThis is the start of epoch: {i}\n")
 
         # load training data
-        training_data, training_params = generate_training_data()
+        training_data, training_params = generate_training_data(realizations=realizations)
 
         # convert training data to a numpy array
         training_data = training_data.numpy()
@@ -245,14 +240,14 @@ def run_simulation_variogram(realizations=realizations,
         np.save(loss_info, loss)
 
     # get NN predictions for test set (outputs a numpy array)
-    preds = model.predict(x=testing_data)
+    preds = model.predict(x=testing_variogram)
 
     # save NN predictions
     with open(f"./results/predictions_NN_VG{realizations}.npy", mode="wb") as file:
         np.save(file, preds)
 
 
-def run_simulation_mle(realizations=realizations):
+def run_simulation_mle(testing_data, realizations=1):
 
     # generate some data to get the distance matrix
     dist_mat = some_file_1.Spatial().distance_matrix
@@ -307,4 +302,19 @@ def run_simulation_mle(realizations=realizations):
             np.save(file, preds)
 
 
-run_simulation_field(realizations=realizations)
+# generate testing data for a single realization
+testing_data, testing_params = generate_testing_data(realizations=realization1)
+
+# run simulation for different models
+run_simulation_field(realizations=realization1, testing_data=testing_data)
+run_simulation_variogram(realizations=realization1, testing_data=testing_data)
+run_simulation_mle(realizations=realization1, testing_data=testing_data)
+
+# generate testing data for more than one realization
+testing_data, testing_params = generate_testing_data(realizations=realization2)
+
+# run simulation for different models
+run_simulation_field(realizations=realization2, testing_data=testing_data)
+run_simulation_variogram(realizations=realization2, testing_data=testing_data)
+run_simulation_mle(realizations=realization2, testing_data=testing_data)
+
