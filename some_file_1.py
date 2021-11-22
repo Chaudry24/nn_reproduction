@@ -3,17 +3,19 @@ import numpy as np
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
 import matplotlib.pyplot as plt
-# from retry import retry
+import skgstat as skg
+from retry import retry
 # import tensorflow as tf
 # import autograd
 # import torch
+import matplotlib.pyplot as plt
 
 
 class Spatial:
     """This class is used for generating and visualizing spatial data."""
 
     def __init__(self, n_points=256, distance_metric="euclidean", variance=1.0,
-                 smoothness=1.5, spatial_range=0.5, nugget=0.0,
+                 spatial_range=0.2, smoothness=0.5, nugget=0.0,
                  covariance_type="matern", realizations=1):
         self.n_points = n_points
         self.distance_metric = distance_metric
@@ -24,24 +26,58 @@ class Spatial:
         self.covariance_type = covariance_type
         self.realizations = realizations
         self.domain = self.generate_grid()
-        self.distance_matrix = self.compute_distance_normalized(self.domain[:, 0], self.domain[:, 1],
-                                                                self.distance_metric)
+        self.distance_matrix = self.compute_distance(self.domain[:, 0], self.domain[:, 1],
+                                                     self.distance_metric)
         self.covariance = self.compute_covariance(self.covariance_type, self.distance_matrix,
                                                   variance=self.variance, smoothness=self.smoothness,
                                                   spatial_range=self.spatial_range, nugget=self.nugget)
         self.observed_data = self.observations()
 
-    def generate_grid(self):
+    @staticmethod
+    def generate_grid():
         """Generates a grid on a unit cube"""
         # generate x and y coordinates
-        x = np.linspace(0, 1, self.n_points)
-        y = np.linspace(0, 1, self.n_points)
+        x = np.linspace(0, 1, 16)
+        y = np.linspace(0, 1, 16)
+        # make a 2d grid
+        x, y = np.meshgrid(x, y)
+        # reshape x and y into vectors
+        x = x.ravel()
+        y = y.ravel()
         # concatenate the coordinates to get a grid
         grid = np.array([x, y]).T
         return grid
 
+    # @staticmethod
+    # def tfspstat_spatial_grid():
+    #     x = np.linspace(0, 16, 16)
+    #     y = np.linspace(0, 16, 16)
+    #     x, y = np.meshgrid(x, y)
+    #     x = x.ravel()
+    #     y = y.ravel()
+    #     grid = np.array([x, y]).T
+    #     return grid
+
+    # @staticmethod
+    # def make_edf_grid(train=True):
+    #
+    #     if train:
+    #         spatial_range = np.linspace(2, 50, 200)
+    #         nugget_range = np.linspace(1e-6, 150, 201)
+    #         edf_vals = np.linspace(1, 255, 200)
+    #         for num in edf_vals:
+    #             for val in spatial_range:
+    #                 if
+    #     else:
+    #         spatial_range = np.linspace(2, 50, 20)
+    #         nugget_range = np.linspace(1e-4, 2, 20)
+    #
+    #     for i in range(1):
+    #         pass
+
     @staticmethod
-    def compute_distance_normalized(x_coords, y_coords, distance_metric):
+    def compute_distance(x_coords, y_coords, distance_metric,
+                         normalize=False):
         """Returns normalized distance matrix for euclidean or
         great circle distances i.e. distance_matrix / max_distance
         WARNING: MAKE SURE THAT DATA IN RADIANS BEFORE USING GREAT CIRCLE
@@ -51,15 +87,21 @@ class Spatial:
         if distance_metric == 'euclidean':
             # compute euclidean distance
             distance_matrix = sklearn.metrics.pairwise.euclidean_distances(domain)
-            # normalize by max distance
-            max_distance = np.max(distance_matrix)
-            return distance_matrix / max_distance
+            if normalize:
+                # normalize by max distance
+                max_distance = np.max(distance_matrix)
+                # save distance matrix divided by max distance
+                distance_matrix /= max_distance
+            return distance_matrix
         elif distance_metric == 'great_circle':
             # compute haversine distance
             distance_matrix = sklearn.metrics.pairwise.haversine_distances(domain)
-            # normalize by max distance
-            max_distance = np.max(distance_matrix)
-            return distance_matrix / max_distance
+            if normalize:
+                # find the max distance
+                max_distance = np.max(distance_matrix)
+                # normalize by max distance
+                distance_matrix /= max_distance
+            return distance_matrix
 
     @staticmethod
     def compute_covariance(covariance_type, distance_matrix,
@@ -80,58 +122,10 @@ class Spatial:
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
             # add a small perturbation/nugget effect for numerical stability
-            matern_covariance += 1e-3 * np.eye(n_points)
+            # matern_covariance += 1e-3 * np.eye(n_points)
             return matern_covariance
         else:
             pass
-
-    # # TODO: this is a second function for tensorlfow
-    # @staticmethod
-    # def compute_covariance2(covariance_type, distance_matrix,
-    #                         variance, smoothness, spatial_range, nugget,
-    #                         n_points=256):
-    #     """Computes the covariance matrix given the distance and covariance_type"""
-    #     # distance_matrix = tf.Variable
-    #     smoothness = tf.Variable
-    #     spatial_range = tf.Variable
-    #     nugget = tf.Variable
-    #     if covariance_type == 'matern':
-    #         first_term = variance / (2 ** (smoothness - tf.Variable(1)) * gamma(smoothness))
-    #         second_term = (distance_matrix / spatial_range) ** smoothness
-    #         third_term = kv(smoothness, distance_matrix / spatial_range)
-    #         matern_covariance = first_term * second_term * third_term
-    #         matern_covariance = tf.where(tf.math.is_nan(matern_covariance),
-    #                                      variance * tf.ones_like(matern_covariance),
-    #                                      matern_covariance)
-    #         matern_covariance = tf.where(tf.math.is_inf(matern_covariance),
-    #                                      variance * tf.ones_like(matern_covariance),
-    #                                      matern_covariance)
-    #         if nugget > 0:
-    #             matern_covariance += nugget * np.eye(n_points)
-    #         return matern_covariance
-    #     else:
-    #         pass
-
-    # TODO: this is a third function to pytorch
-    # @staticmethod
-    # def compute_covariance3(covariance_type, distance_matrix,
-    #                         variance, smoothness, spatial_range, nugget,
-    #                         n_points=256):
-    #     """Computes the covariance matrix given the distance and covariance_type"""
-    #     if covariance_type == 'matern':
-    #         first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
-    #         second_term = (torch.tensor(distance_matrix) / spatial_range) ** smoothness
-    #         third_term = kv(smoothness, torch.tensor(distance_matrix) / spatial_range)
-    #         matern_covariance = first_term * second_term * third_term
-    #         # replace infinity by variance
-    #         matern_covariance[matern_covariance == float("inf")] = variance.double()
-    #         # replace nan by variance
-    #         matern_covariance[matern_covariance != matern_covariance] = variance.double()
-    #         if nugget > 0:
-    #             matern_covariance += nugget * np.eye(n_points)
-    #         return matern_covariance
-    #     else:
-    #         pass
 
     def observations(self):
         """Returns observations from a GP with a given covariance"""
@@ -142,18 +136,19 @@ class Spatial:
             chol_decomp_lower = np.linalg.cholesky(self.covariance)
             # multiply the iid data by lower cholesky to get correlated data
             observed_data = chol_decomp_lower @ iid_data
-            return observed_data
+            return observed_data.reshape(self.n_points, 1)
         elif self.realizations > 1:
             # initialize memory for observed data
-            observed_data = np.zeros((self.realizations, self.n_points, self.n_points))
+            observed_data = np.empty((self.n_points, self.realizations))
             # find lower cholesky decomposition of covariance matrix
             chol_decomp_lower = np.linalg.cholesky(self.covariance)
             # TODO: parallelize this loop
             for i in range(self.realizations):
                 # generate iid normal vector
-                iid_data = np.random.randn(self.n_points, 1)
+                iid_data = np.random.randn(self.n_points)
                 # save each realization of correlated vector by multiplying to lower cholesky
-                observed_data[i, :, :] = chol_decomp_lower @ iid_data
+                observed_data[:, i] = chol_decomp_lower @ iid_data
+            return observed_data
         else:
             return SyntaxError("realizations need to be greater than or equal to 1")
 
@@ -175,6 +170,21 @@ class Spatial:
                 plt.figure(num=i)
                 normalize = matplotlib.colors.Normalize(0, 1)
                 plt.scatter(x=x_coord, y=y_coord, cmap="PuRd", norm=normalize, c=colors)
+
+    @staticmethod
+    @retry(Exception, tries=-1, delay=0, backoff=0)
+    def compute_variogram(coordinates, observations, realizations):
+        """Returns the empirical variogram given the coordinates and observations"""
+        # initialize empty array to save variogram values
+        variogram = np.empty((10, realizations))
+        # use for-loop to calculate variogram for each realization
+        for i in range(realizations):
+            # compute the variogram using skgstat package
+            tmp_array = skg.Variogram(coordinates=coordinates, values=observations[:, i], model="matern",
+                                      fit_method="ml", bin_func="even", estimator="cressie").get_empirical()[1]
+            variogram[:, i] = tmp_array
+        # return the empirical variogram
+        return variogram
 
     def plot_covariogram(self):
         """Makes a scatter plot of the covariogram"""
@@ -227,7 +237,7 @@ class Optimization(Spatial):
         # compute lower cholesky matrix
         lower_cholesky = np.linalg.cholesky(covariance_mat)
         # add a small perturbation to lower cholesky for stability
-        lower_cholesky += 1e-3 * np.eye(n_points)
+        # lower_cholesky += 1e-3 * np.eye(n_points)
         # the first term of the negative log likelihood function
         first_term = n_points / 2.0 * np.log(2.0 * np.pi)
         # compute the log determinant term
@@ -238,41 +248,6 @@ class Optimization(Spatial):
         third_term = float(0.5 * self.observations.T @ np.linalg.inv(covariance_mat)
                            @ self.observations)
         return first_term + second_term + third_term
-
-    # # TODO: this function is a test function which uses tesnorflow tensors
-    # def objective_function2(self, variance, spatial_range,
-    #                         smoothness, nugget, n_points=256):
-    #     """Computes the objective functional"""
-    #     covariance_mat = self.compute_covariance2(self.covariance_type, self.distance_matrix,
-    #                                               variance=variance, smoothness=smoothness,
-    #                                               spatial_range=spatial_range, nugget=nugget,
-    #                                               n_points=n_points)
-    #     lower_cholesky = np.linalg.cholesky(covariance_mat)
-    #     first_term = n_points / 2.0 * np.log(2.0 * np.pi)
-    #     log_determinant_term = 2.0 * np.trace(np.log(lower_cholesky))
-    #     second_term = 0.5 * log_determinant_term
-    #     third_term = float(0.5 * self.observations.T @ np.linalg.inv(covariance_mat)
-    #                        @ self.observations)
-    #     return first_term + second_term + third_term
-
-    # # TODO: this function is a test function which uses pytorch tensors
-    # def objective_function3(self, variance, spatial_range,
-    #                         smoothness, nugget, n_points=256):
-    #     """Computes the objective functional"""
-    #     covariance_mat = self.compute_covariance3(self.covariance_type, self.distance_matrix,
-    #                                               variance=variance, smoothness=smoothness,
-    #                                               spatial_range=spatial_range, nugget=nugget,
-    #                                               n_points=n_points)
-    #     lower_cholesky = torch.cholesky(covariance_mat)
-    #     first_term = n_points / 2.0 * np.log(2.0 * np.pi)
-    #     log_determinant_term = 2.0 * torch.trace(torch.log(lower_cholesky))
-    #     second_term = 0.5 * log_determinant_term
-    #     third_term = torch.tensor(0.5 * torch.tensor(self.observations.T) @ torch.inverse(covariance_mat)
-    #                               @ torch.tensor(self.observations))
-    #     return first_term + second_term + third_term
-
-    # def autograd_variance(self):
-    #     pass
 
     def der_wrt_variance(self, h=1e-2):
         """This function approximates the derivative of the objective function
@@ -345,7 +320,7 @@ class Optimization(Spatial):
             # step size scaling
             step_size_scale = 0.9
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 5000:
+            while (not stopping_condition) and k < 1:
                 # print the start of gradient descent
                 print(f"\nGradient descent step for the {k}th time\n")
                 # set learning rate
@@ -413,9 +388,21 @@ class Optimization(Spatial):
                     "smoothness": self.smoothness, "nugget": self.nugget,
                     "norm_current_gradient": norm_current_gradient, "objective_value": self.objective_value}
 
-
-# field = Spatial()
-# distance = field.distance_matrix
+# r = 100
+# field = Spatial(realizations=r)
+# # field.plot_observed_data()
+# observations = field.observations()
+# coords = field.domain
+# n_points = field.n_points
+# variogram = field.compute_variogram(coordinates=coords, observations=observations, realizations=r)
+# for i in range(r):
+#     plt.plot(variogram[:, i])
+# plt.show()
+# # semivar.get_empirical()
+# # plt.figure()
+# # plt.plot(distances, variogram)
+# # plt.show()
+# # distance = field.distance_matrix
 # data = field.observed_data
 # model = Optimization(observations=data, distance_matrix=distance,
 #                      estimate_variance=True, estimate_spatial_range=False)
