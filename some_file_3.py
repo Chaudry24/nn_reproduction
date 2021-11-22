@@ -7,7 +7,7 @@ import numpy as np
 n_train_samples = 4
 n_test_samples = 2
 # number of realizations
-realizations = 1
+realizations = 2
 # sets of testing data
 total_testing_data = 5
 # number of params estimated
@@ -299,9 +299,12 @@ def run_simulation_mle(realizations=realizations):
     preds = np.array(preds)
 
     # save the mle predictions
-    with open("./results/predictions_MLE.npy", mode="wb") as file:
-        np.save(file, preds)
+    if realizations > 1:
+        with open(f"./results/predictions_MLE{realizations}.npy", mode="wb") as file:
+            np.save(file, preds)
+    else:
+        with open("./results/predictions_MLE.npy", mode="wb") as file:
+            np.save(file, preds)
 
 
-run_simulation_mle()
-
+run_simulation_field(realizations=realizations)
