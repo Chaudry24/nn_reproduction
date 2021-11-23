@@ -6,15 +6,19 @@ import numpy as np
 # number of training and test samples
 n_train_samples = 64
 n_test_samples = 32
+n_train_samples = 5
+n_test_samples = 3
 # number of realizations
 realization1 = 1
 realization2 = 30
 # sets of testing data
 total_testing_data = 60
+total_testing_data = 1
 # number of params estimated
 n_params = 2
 # number of epochs
 n_epochs = 10000
+n_epochs = 4
 # batch size
 batch_size = 16
 # spatial coordinates
@@ -303,18 +307,35 @@ def run_simulation_mle(testing_data, realizations=1):
 
 
 # generate testing data for a single realization
+print("\nAbout to generate test data\n")
 testing_data, testing_params = generate_testing_data(realizations=realization1)
+print("\nTest data has been generated\n")
 
 # run simulation for different models
+print("\nstarting field model\n")
 run_simulation_field(realizations=realization1, testing_data=testing_data)
+print("\nfield model ended\n")
+print("\nstaring variogram model\n")
 run_simulation_variogram(realizations=realization1, testing_data=testing_data)
+print("\nvariogram model ended\n")
+print("\nstarting mle\n")
 run_simulation_mle(realizations=realization1, testing_data=testing_data)
+print("\nmle ended\n")
 
 # generate testing data for more than one realization
+print("\nAbout to generate test data for more than one realization\n")
 testing_data, testing_params = generate_testing_data(realizations=realization2)
+print("\nTest data has been generated for more than one realization\n")
 
 # run simulation for different models
+print("\nstarting field model for more than one realization\n")
 run_simulation_field(realizations=realization2, testing_data=testing_data)
+print("\nfield model ended for more than one realization\n")
+print("\nstarting variogram model for more than one realization\n")
 run_simulation_variogram(realizations=realization2, testing_data=testing_data)
+print("\nvariogram model ended for more than one realization\n")
+print("\nstarting mle for more than one realization\n")
 run_simulation_mle(realizations=realization2, testing_data=testing_data)
+print("\nmle ended for more than one realization\n")
+
 
