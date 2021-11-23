@@ -122,7 +122,7 @@ class Spatial:
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
             # add a small perturbation/nugget effect for numerical stability
-            # matern_covariance += 1e-3 * np.eye(n_points)
+            matern_covariance += 1e-3 * np.eye(n_points)
             return matern_covariance
         else:
             pass
