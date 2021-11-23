@@ -320,7 +320,7 @@ class Optimization(Spatial):
             # step size scaling
             step_size_scale = 0.9
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 5000:
+            while (not stopping_condition) and k < 1:
                 # print the start of gradient descent
                 print(f"\nGradient descent step for the {k}th time\n")
                 # set learning rate
