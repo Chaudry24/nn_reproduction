@@ -118,11 +118,16 @@ class Spatial:
             # replace inf and nan on the diagonals by the variance
             matern_covariance = np.nan_to_num(matern_covariance, copy=True,
                                               posinf=variance, nan=variance)
+            # compute eigen decomposition of matern matrix
+            # TODO debug the code by printing eigen vals at each iteration
+            # TODO fix the code by manually making it positive definite
+            smallest_eigenval = np.min(np.linalg.eigvals(matern_covariance))
+            print(f"\nThe smallest eigenvalue is: {smallest_eigenval}\n")
             # add nugget if it is present
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
             # add a small perturbation/nugget effect for numerical stability
-            matern_covariance += 1e-3 * np.eye(n_points)
+            # matern_covariance += 1e-3 * np.eye(n_points)
             return matern_covariance
         else:
             pass
