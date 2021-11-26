@@ -1,10 +1,12 @@
 import matplotlib.colors
 import numpy as np
+import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
 import matplotlib.pyplot as plt
 import skgstat as skg
 from retry import retry
+import warnings
 # import tensorflow as tf
 # import autograd
 # import torch
@@ -15,7 +17,7 @@ class Spatial:
     """This class is used for generating and visualizing spatial data."""
 
     def __init__(self, n_points=256, distance_metric="euclidean", variance=1.0,
-                 spatial_range=0.2, smoothness=0.5, nugget=0.0,
+                 spatial_range=0.2, smoothness=1.0, nugget=0.0,
                  covariance_type="matern", realizations=1):
         self.n_points = n_points
         self.distance_metric = distance_metric
@@ -76,7 +78,7 @@ class Spatial:
     #         pass
 
     @staticmethod
-    def compute_distance(x_coords, y_coords, distance_metric,
+    def compute_distance(x_coords, y_coords, distance_metric="euclidean",
                          normalize=False):
         """Returns normalized distance matrix for euclidean or
         great circle distances i.e. distance_matrix / max_distance
@@ -84,7 +86,7 @@ class Spatial:
         METRIC."""
         # write the domain as n_points by 2 matrix
         domain = np.array([x_coords, y_coords]).T
-        if distance_metric == 'euclidean':
+        if distance_metric == "euclidean":
             # compute euclidean distance
             distance_matrix = sklearn.metrics.pairwise.euclidean_distances(domain)
             if normalize:
@@ -126,6 +128,8 @@ class Spatial:
             # add nugget if it is present
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
+            smallest_eigenval2 = np.min(np.linalg.eigvals(matern_covariance))
+            print(f"\nThe smallest eigenvalue is: {smallest_eigenval2}\n")
             # add a small perturbation/nugget effect for numerical stability
             # matern_covariance += 1e-3 * np.eye(n_points)
             return matern_covariance
@@ -177,19 +181,59 @@ class Spatial:
                 plt.scatter(x=x_coord, y=y_coord, cmap="PuRd", norm=normalize, c=colors)
 
     @staticmethod
-    @retry(Exception, tries=-1, delay=0, backoff=0)
-    def compute_variogram(coordinates, observations, realizations):
+    def compute_semivariogram(coordinates, observations, realizations, bins=20):
+        print("\nstarting\n")
         """Returns the empirical variogram given the coordinates and observations"""
-        # initialize empty array to save variogram values
+        # initialize empty array to save semivariogram values
         variogram = np.empty((10, realizations))
-        # use for-loop to calculate variogram for each realization
+        # use for-loop to calculate semivariogram for each realization
         for i in range(realizations):
-            # compute the variogram using skgstat package
+            # compute the semivariogram using skgstat package
             tmp_array = skg.Variogram(coordinates=coordinates, values=observations[:, i], model="matern",
-                                      fit_method="ml", bin_func="even", estimator="cressie").get_empirical()[1]
+                                      fit_method=None, bin_func="even", estimator="cressie",
+                                      bins=bins).experimental
+            # save the empirical semivariogram
             variogram[:, i] = tmp_array
-        # return the empirical variogram
+        # return the empirical semivariogram
         return variogram
+
+    # TODO: debug this mess
+    # def compute_semivariogram(self, coordinates, observations):
+    #     # reshape observations into 256,
+    #     observations = observations.ravel()
+    #     # convert observations into a matrix
+    #     observations = np.column_stack((observations, np.zeros(observations.shape)))
+    #     # compute pairwise distance squared between observations
+    #     observations_distance = sklearn.metrics.pairwise.euclidean_distances(observations) ** 2
+    #     # compute the distance between coordinates
+    #     distance = self.compute_distance(coordinates[:, 0], coordinates[:, 1])
+    #     # normalize the observations distance
+    #     # unique, inverse, counts = np.unique(observations_distance, return_inverse=True, return_counts=True)
+    #     # np.take(counts, inverse).reshape(observations_distance.shape)
+    #     # observations_distance = observations_distance / np.take(counts, inverse).reshape(observations_distance.shape)
+    #     bins = 10
+    #     mean_vals = []
+    #     tmp_dvals = []
+    #     for i in range(bins):
+    #         tmp_vals = []
+    #         for j in range(self.distance_matrix.ravel().size):
+    #             if i / bins <= self.distance_matrix.ravel()[j] < (i+1) / bins:
+    #                 tmp_vals.append(observations_distance.ravel()[j])
+    #                 tmp_dvals.append(self.distance_matrix.ravel()[j])
+    #         mean_vals.append(0.5 * np.average(tmp_vals))
+    #     dom = np.linspace(0.14, 14, 10) / bins
+    #     test = skg.Variogram(self.domain, observations[:, 0], model="matern",
+    #                          bin_func="even", fit_method=None, use_nugget=False, n_lags=bins,
+    #                          verbose=True).get_empirical()
+    #     print(np.abs(np.asarray(mean_vals) - test[1]))
+    #     plt.scatter(self.distance_matrix.ravel(), observations_distance.ravel())
+    #
+    #     plt.scatter(test[0], np.asarray(mean_vals)*7)
+    #     # dom = np.linspace(0, 9, 10)
+    #     plt.scatter(test[0], test[1]*7, c='r')
+    #     plt.scatter(self.distance_matrix.ravel(), (self.variance+self.nugget - self.covariance).ravel() * 7, c="purple")
+    #     plt.show()
+    #     2+2
 
     def plot_covariogram(self):
         """Makes a scatter plot of the covariogram"""
@@ -246,7 +290,7 @@ class Optimization(Spatial):
         # the first term of the negative log likelihood function
         first_term = n_points / 2.0 * np.log(2.0 * np.pi)
         # compute the log determinant term
-        log_determinant_term = 2.0 * np.trace(np.log(lower_cholesky)) 
+        log_determinant_term = 2.0 * np.trace(np.log(lower_cholesky))
         # the second term of the negative log likelihood function
         second_term = 0.5 * log_determinant_term
         # the third term of the negative log likelihood function
@@ -393,18 +437,25 @@ class Optimization(Spatial):
                     "smoothness": self.smoothness, "nugget": self.nugget,
                     "norm_current_gradient": norm_current_gradient, "objective_value": self.objective_value}
 
-# r = 100
+#
+# r = 1000
 # field = Spatial(realizations=r)
-# # field.plot_observed_data()
+# # # field.plot_observed_data()
 # observations = field.observations()
+# # obs_dis = field.compute_distance(observations, observations)
 # coords = field.domain
-# n_points = field.n_points
-# variogram = field.compute_variogram(coordinates=coords, observations=observations, realizations=r)
+# semivar = field.compute_semivariogram(coords, observations, r)
+#
 # for i in range(r):
-#     plt.plot(variogram[:, i])
+#     plt.plot(semivar[:, i])
 # plt.show()
-# # semivar.get_empirical()
-# # plt.figure()
+# # variogram = field.compute_variogram(coordinates=coords, observations=observations, realizations=r)
+# # print(variogram)
+# # for i in range(r):
+# #     plt.plot(variogram[:, i])
+# # plt.show()
+# # # semivar.get_empirical()
+# # # plt.figure()
 # # plt.plot(distances, variogram)
 # # plt.show()
 # # distance = field.distance_matrix

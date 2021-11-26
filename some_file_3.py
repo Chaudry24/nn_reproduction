@@ -172,7 +172,7 @@ def run_simulation_variogram(testing_data, realizations=1):
 
     # compute the variogram for each sample
     for j in range(n_test_samples * total_testing_data):
-        testing_variogram[j] = some_file_1.Spatial.compute_variogram(coordinates=spatial_grid,
+        testing_variogram[j] = some_file_1.Spatial.compute_semivariogram(coordinates=spatial_grid,
                                                                      observations=testing_data[j],
                                                                      realizations=realizations)
 
@@ -216,7 +216,7 @@ def run_simulation_variogram(testing_data, realizations=1):
 
         # compute the variogram for each sample
         for j in range(n_train_samples):
-            training_variogram[j] = some_file_1.Spatial.compute_variogram(coordinates=spatial_grid,
+            training_variogram[j] = some_file_1.Spatial.compute_semivariogram(coordinates=spatial_grid,
                                                                           observations=training_data[j],
                                                                           realizations=realizations)
 

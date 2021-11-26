@@ -4,7 +4,7 @@ from retry import retry
 import os
 
 
-@retry(Exception, tries=-1, delay=0, backoff=0)
+@retry(np.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
 def save_data(file_name_data="tmp_data_file", file_name_params="tmp_params_file",
               file_path="./data", sample_variance=False, sample_spatial_range=False,
               sample_smoothness=False, sample_nugget=False, realizations=5,
