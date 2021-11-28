@@ -12,12 +12,12 @@ n_test_samples = 32
 realization1 = 1
 realization2 = 30
 # sets of testing data
-total_testing_data = 60
+total_testing_data = 3
 # total_testing_data = 1
 # number of params estimated
 n_params = 2
 # number of epochs
-n_epochs = 10000
+n_epochs = 5000
 # n_epochs = 4
 # batch size
 batch_size = 16
