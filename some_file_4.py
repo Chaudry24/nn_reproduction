@@ -1,56 +1,62 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import some_file_1
 
-# save training loss
-with open("./results/training_loss.npy", mode="rb") as file:
-    training_loss = np.load(file)
 
-# save NN predictions
-with open("./results/predictions_NN.npy", mode="rb") as file:
-    preds_NN = np.load(file)
+# SPATIAL GRID
+x = np.linspace(1, 16, 16)
+y = x
+x, y = np.meshgrid(x, y)
+x = x.ravel()
+y = y.ravel()
+spatial_grid = np.array([x, y]).T
 
-# save MLE predictions
-with open("./results/predictions_MLE.npy", mode="rb") as file:
-    preds_MLE = np.load(file)
+# COMPUTE DISTANCE MATRIX
+spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
 
-# save true values
-with open("./data/testing_params.npy", mode="rb") as file:
-    true_vals = np.load(file)
+# LOAD PARAMETER SPACE FOR TRAINING
+with open("npy/training_201_200_y.npy", mode="rb") as file:
+    training_parameter_space = np.load(file)
 
-# plot training loss
-plt.figure()
-plt.title("Training loss over last 200 epochs")
-plt.plot(training_loss[19900:20000])
-plt.xlabel("Epochs")
-plt.ylabel("training loss")
+# LOAD PARAMETER SPACE FOR TESTING
+with open("npy/test_y.npy", mode="rb") as file:
+    testing_parameter_space = np.load(file)
 
-# plot spatial range predictions
-plt.figure()
-plt.title("Spatial Range Predictions")
-plt.scatter(x=preds_NN[:, 0], y=preds_MLE[:, 0])
-plt.xlabel("NN preds for spatial range")
-plt.ylabel("MLE preds for spatial range")
+# GENERATE COVARIANCE MATRICES FOR TRAINING SET
+cov_mats_train = np.empty([256, 256, training_parameter_space.shape[0]])
+for i in range(training_parameter_space.shape[0]):
+    print(f"generating training covariance matrix for {i}th value")
+    cov_mats_train[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
+                                                                     distance_matrix=spatial_distance,
+                                                                     variance=1.0, smoothness=1.0,
+                                                                     spatial_range=training_parameter_space[i, 1],
+                                                                     nugget=training_parameter_space[i, 0])
 
-# plot smoothness predictions
-plt.figure()
-plt.title("Smoothness Predictions")
-plt.scatter(x=preds_NN[:, 1], y=preds_MLE[:, 1])
-plt.xlabel("NN preds for smoothness")
-plt.ylabel("MLE preds for smoothness")
+# GENERATE COVARIANCE MATRICES FOR TESTING SET
+cov_mats_test = np.empty([256, 256, testing_parameter_space.shape[0]])
+for i in range(testing_parameter_space.shape[0]):
+    print(f"generating testing covariance matrix for {i}th value")
+    cov_mats_test[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
+                                                                    distance_matrix=spatial_distance,
+                                                                    variance=1.0, smoothness=1.0,
+                                                                    spatial_range=testing_parameter_space[i, 1],
+                                                                    nugget=testing_parameter_space[i, 0])
 
-# calculate bias in NN and MLE estimates
-bias_NN_spatial_range = np.abs(np.average(preds_NN[:, 0] - true_vals[:, 0]))
-bias_NN_smoothness = np.abs(np.average(preds_NN[:, 1] - true_vals[:, 1]))
-bias_MLE_spatial_range = np.abs(np.average(preds_MLE[:, 0] - true_vals[:, 0]))
-bias_MLE_smoothness = np.abs(np.average(preds_MLE[:, 1] - true_vals[:, 1]))
 
-# plot bias
-plt.figure()
-plt.title("NN vs MLE Bias")
-plt.xlabel("NN bias")
-plt.ylabel("MLE bias")
-plt.scatter(x=bias_NN_spatial_range, y=bias_MLE_spatial_range, c="r")
-plt.scatter(x=bias_NN_smoothness, y=bias_MLE_smoothness, c="b")
+# GENERATE OBSERVATIONS FOR TRAINING
+observations_train = np.empty([training_parameter_space.shape[0], 32, 32, 1])
+for i in range(training_parameter_space.shape[0]):
+    print(f"generating training data for the {i}th covariance matrix")
+    tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i]).reshape(32, 32)
+    observations_train[i, :, :, :] = tmp_array
 
-# show all the plots
-plt.show()
+# GENERATE OBSERVATIONS FOR TESTING
+observations_test = np.empty([testing_parameter_space.shape[0], 32, 32, 1])
+for i in range(testing_parameter_space.shape[0]):
+    print(f"generating testing data for the {i}th covariance matrix")
+    tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i]).reshape(32, 32)
+    observations_test[i, :, :, :] = tmp_array
+
+
+
+testing_data = some_file_1.Spatial.observations(realizations=1)
+

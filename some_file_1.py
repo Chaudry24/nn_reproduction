@@ -50,33 +50,6 @@ class Spatial:
         grid = np.array([x, y]).T
         return grid
 
-    # @staticmethod
-    # def tfspstat_spatial_grid():
-    #     x = np.linspace(0, 16, 16)
-    #     y = np.linspace(0, 16, 16)
-    #     x, y = np.meshgrid(x, y)
-    #     x = x.ravel()
-    #     y = y.ravel()
-    #     grid = np.array([x, y]).T
-    #     return grid
-
-    # @staticmethod
-    # def make_edf_grid(train=True):
-    #
-    #     if train:
-    #         spatial_range = np.linspace(2, 50, 200)
-    #         nugget_range = np.linspace(1e-6, 150, 201)
-    #         edf_vals = np.linspace(1, 255, 200)
-    #         for num in edf_vals:
-    #             for val in spatial_range:
-    #                 if
-    #     else:
-    #         spatial_range = np.linspace(2, 50, 20)
-    #         nugget_range = np.linspace(1e-4, 2, 20)
-    #
-    #     for i in range(1):
-    #         pass
-
     @staticmethod
     def compute_distance(x_coords, y_coords, distance_metric="euclidean",
                          normalize=False):
@@ -136,25 +109,26 @@ class Spatial:
         else:
             pass
 
-    def observations(self):
+    @staticmethod
+    def observations(realizations, covariance, n_points=256):
         """Returns observations from a GP with a given covariance"""
-        if self.realizations == 1:
+        if realizations == 1:
             # generate iid normal vector
-            iid_data = np.random.randn(self.n_points, 1)
+            iid_data = np.random.randn(n_points, 1)
             # find lower cholesky decomposition of covariance matrix
-            chol_decomp_lower = np.linalg.cholesky(self.covariance)
+            chol_decomp_lower = np.linalg.cholesky(covariance)
             # multiply the iid data by lower cholesky to get correlated data
             observed_data = chol_decomp_lower @ iid_data
-            return observed_data.reshape(self.n_points, 1)
-        elif self.realizations > 1:
+            return observed_data.reshape(n_points, 1)
+        elif realizations > 1:
             # initialize memory for observed data
-            observed_data = np.empty((self.n_points, self.realizations))
+            observed_data = np.empty((n_points, realizations))
             # find lower cholesky decomposition of covariance matrix
-            chol_decomp_lower = np.linalg.cholesky(self.covariance)
+            chol_decomp_lower = np.linalg.cholesky(covariance)
             # TODO: parallelize this loop
-            for i in range(self.realizations):
+            for i in range(realizations):
                 # generate iid normal vector
-                iid_data = np.random.randn(self.n_points)
+                iid_data = np.random.randn(n_points)
                 # save each realization of correlated vector by multiplying to lower cholesky
                 observed_data[:, i] = chol_decomp_lower @ iid_data
             return observed_data
@@ -196,44 +170,6 @@ class Spatial:
             variogram[:, i] = tmp_array
         # return the empirical semivariogram
         return variogram
-
-    # TODO: debug this mess
-    # def compute_semivariogram(self, coordinates, observations):
-    #     # reshape observations into 256,
-    #     observations = observations.ravel()
-    #     # convert observations into a matrix
-    #     observations = np.column_stack((observations, np.zeros(observations.shape)))
-    #     # compute pairwise distance squared between observations
-    #     observations_distance = sklearn.metrics.pairwise.euclidean_distances(observations) ** 2
-    #     # compute the distance between coordinates
-    #     distance = self.compute_distance(coordinates[:, 0], coordinates[:, 1])
-    #     # normalize the observations distance
-    #     # unique, inverse, counts = np.unique(observations_distance, return_inverse=True, return_counts=True)
-    #     # np.take(counts, inverse).reshape(observations_distance.shape)
-    #     # observations_distance = observations_distance / np.take(counts, inverse).reshape(observations_distance.shape)
-    #     bins = 10
-    #     mean_vals = []
-    #     tmp_dvals = []
-    #     for i in range(bins):
-    #         tmp_vals = []
-    #         for j in range(self.distance_matrix.ravel().size):
-    #             if i / bins <= self.distance_matrix.ravel()[j] < (i+1) / bins:
-    #                 tmp_vals.append(observations_distance.ravel()[j])
-    #                 tmp_dvals.append(self.distance_matrix.ravel()[j])
-    #         mean_vals.append(0.5 * np.average(tmp_vals))
-    #     dom = np.linspace(0.14, 14, 10) / bins
-    #     test = skg.Variogram(self.domain, observations[:, 0], model="matern",
-    #                          bin_func="even", fit_method=None, use_nugget=False, n_lags=bins,
-    #                          verbose=True).get_empirical()
-    #     print(np.abs(np.asarray(mean_vals) - test[1]))
-    #     plt.scatter(self.distance_matrix.ravel(), observations_distance.ravel())
-    #
-    #     plt.scatter(test[0], np.asarray(mean_vals)*7)
-    #     # dom = np.linspace(0, 9, 10)
-    #     plt.scatter(test[0], test[1]*7, c='r')
-    #     plt.scatter(self.distance_matrix.ravel(), (self.variance+self.nugget - self.covariance).ravel() * 7, c="purple")
-    #     plt.show()
-    #     2+2
 
     def plot_covariogram(self):
         """Makes a scatter plot of the covariogram"""
