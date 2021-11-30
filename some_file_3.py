@@ -4,20 +4,20 @@ import some_file_1
 import numpy as np
 
 # number of training and test samples
-n_train_samples = 64
-n_test_samples = 32
+n_train_samples = 32
+n_test_samples = 10
 # n_train_samples = 5
 # n_test_samples = 3
 # number of realizations
 realization1 = 1
 realization2 = 30
 # sets of testing data
-total_testing_data = 3
+total_testing_data = 1
 # total_testing_data = 1
 # number of params estimated
 n_params = 2
 # number of epochs
-n_epochs = 5000
+n_epochs = 1000
 # n_epochs = 4
 # batch size
 batch_size = 16

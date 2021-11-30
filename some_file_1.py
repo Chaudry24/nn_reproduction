@@ -367,9 +367,9 @@ class Optimization(Spatial):
             # used to prevent infinite loop
             k = 0
             # step size scaling
-            step_size_scale = 0.9
+            step_size_scale = 0.5
             # start the gradient descent algorithm
-            while (not stopping_condition) and k < 5000:
+            while (not stopping_condition) and k < 500:
                 # print the start of gradient descent
                 print(f"\nGradient descent step for the {k}th time\n")
                 # set learning rate
@@ -403,7 +403,7 @@ class Optimization(Spatial):
                 # to prevent infinite loop
                 j = 0
                 # to guarantee convergence
-                while new_objective_value > self.objective_value and j < 200:
+                while new_objective_value > self.objective_value and j < 15:
                     # increment to prevent infinite loop
                     j += 1
                     # scale the step size
