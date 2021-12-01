@@ -24,66 +24,72 @@ with open("npy/test_y.npy", mode="rb") as file:
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
 cov_mats_train = np.empty([256, 256, training_parameter_space.shape[0]])
 for i in range(training_parameter_space.shape[0]):
-    print(f"generating training covariance matrix for {i}th value")
+    print(f"\ngenerating training covariance matrix for {i}th value\n")
     cov_mats_train[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
                                                                      distance_matrix=spatial_distance,
                                                                      variance=1.0, smoothness=1.0,
                                                                      spatial_range=training_parameter_space[i, 1],
                                                                      nugget=np.exp(training_parameter_space[i, 0]))
+    print(f"\ntraining covariance matrix for {i}th value generated\n")
 
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 cov_mats_test = np.empty([256, 256, testing_parameter_space.shape[0]])
 for i in range(testing_parameter_space.shape[0]):
-    print(f"generating testing covariance matrix for {i}th value")
+    print(f"\ngenerating testing covariance matrix for {i}th value\n")
     cov_mats_test[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
                                                                     distance_matrix=spatial_distance,
                                                                     variance=1.0, smoothness=1.0,
                                                                     spatial_range=testing_parameter_space[i, 1],
                                                                     nugget=np.exp(testing_parameter_space[i, 0]))
+    print(f"\ntesting covariance matrix for {i}th value generated\n")
 
 
 # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
 observations_train = np.empty([training_parameter_space.shape[0], 16, 16, 1])
 semi_variogram_train = np.empty([training_parameter_space.shape[0], 10])
 for i in range(training_parameter_space.shape[0]):
-    print(f"generating training data for the {i}th covariance matrix")
+    print(f"\ngenerating training data for the {i}th covariance matrix\n")
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
     semi_variogram_train[i, :] = tmp_var
     observations_train[i, :, :, :] = tmp_array.reshape(16, 16)
+    print(f"\ntraining data generated for the {i}th covariance matrix\n")
 
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
 observations_test = np.empty([testing_parameter_space.shape[0], 16, 16, 1])
 semi_variogram_test = np.empty([testing_parameter_space[0], 10])
 for i in range(testing_parameter_space.shape[0]):
-    print(f"generating testing data for the {i}th covariance matrix")
+    print(f"\ngenerating testing data for the {i}th covariance matrix\n")
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
     observations_test[i, :, :, :] = tmp_array.reshape(16, 16)
+    print(f"\ntesting data generated for the {i}th covariance matrix\n")
 
 # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
 observations_train_30 = np.empty([training_parameter_space.shape[0], 16, 16, 30])
 semi_variogram_train_30 = np.empty([training_parameter_space[0], 10, 30])
 for i in range(training_parameter_space.shape[0]):
-    print(f"generating training data for the {i}th covariance matrix")
+    print(f"\ngenerating training data for the {i}th covariance matrix\n")
     for j in range(30):
-        print(f"getting {j}th training realization from {i}th covariance matrix")
+        print(f"\ngetting {j}th training realization from {i}th covariance matrix\n")
         tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
         tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1)
         semi_variogram_train_30[i, :, j] = tmp_var
         observations_train_30[i, :, :, j] = tmp_array.reshape(16, 16)
+        print(f"\n{j}th training realization from {i}th covariance matrix generated\n")
 
 # GENERATE OBSERVATIONS FOR TESTING FOR THIRTY REALIZATIONS
 observations_test_30 = np.empty([testing_parameter_space.shape[0], 16, 16, 30])
 semi_variogram_test_30 = np.empty([testing_parameter_space.shape[0], 10, 30])
 for i in range(testing_parameter_space.shape[0]):
-    print(f"generating testing data for the {i}th covariance matrix")
+    print(f"\ngenerating testing data for the {i}th covariance matrix\n")
     for j in range(30):
-        print(f"getting {j}th testing realization from {i}th covariance matrix")
+        print(f"\ngetting {j}th testing realization from {i}th covariance matrix\n")
         tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
         tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1)
         semi_variogram_test_30[i, :, j] = tmp_var
         observations_test_30[i, :, :, j] = tmp_array.reshape(16, 16)
+        print(f"\n{j}th testing realization from {i}th covariance matrix generated\n")
 
 
 def negative_log_likelihood(variance, spatial_range, smoothness, nugget,
@@ -218,37 +224,53 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 # ------- COMPUTE MLE FOR A SINGLE REALIZATION ------- #
 
-mle_estimates = np.empty([testing_parameter_space.shape[0]])
-for i in range(testing_parameter_space.shape[0]):
-    mle_estimates[i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
-                                               smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
-                                               covariance_mat=cov_mats_test[:, :, i],
-                                               observations=observations_test[i, :].reshape(256))
-mle_pred = observations_test[np.argmin(mle_estimates), :]
+mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
+tmp_array = np.empty([observations_test.shape[0], testing_parameter_space.shape[0]])
+for i in range(observations_test.shape[0]):
+    for j in range(testing_parameter_space.shape[0]):
+        print(f"\nStarting MLE for {i}th observation using {j}th parameters\n")
+        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
+                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
+                                                  covariance_mat=cov_mats_test[:, :, i],
+                                                  observations=observations_test[i, :].reshape(256))
+        print(f"\nEnded MLE for {i}th observation using {j}th parameters\n")
+    print(f"\nSaving the maximum estimates for the {i}th sample\n")
+    mle_estimates[i, 0] = testing_parameter_space[np.argmin(tmp_array[i, :]), 0]
+    mle_estimates[i, 1] = testing_parameter_space[np.argmin(tmp_array[i, :]), 1]
+    print(f"\nSaved the maximum estimates for the {i}th sample\n")
 
 # ------- SAVE MLE PRED FOR A SINGLE REALIZATION ------- #
 
 with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
-    np.save(file, mle_pred)
+    np.save(file, mle_estimates)
 
 # ------- COMPUTE MLE FOR THIRTY REALIZATIONS ------- #
-# TODO FIGURE THIS OUT
-mle_estimates_30 = np.empty([testing_parameter_space.shape[0]])
-tmp_array = np.empty([testing_parameter_space.shape[0], 30])
-for i in range(testing_parameter_space.shape[0]):
-    for j in range(30):
-        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
-                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
-                                                  covariance_mat=cov_mats_test[:, :, i],
-                                                  observations=observations_test_30[i, :, :, j].reshape(256))
-    mle_estimates_30
-    mle_estimates[i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
-                                               smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
-                                               covariance_mat=cov_mats_test[:, :, i],
-                                               observations=observations_test[i, :].reshape(256))
-mle_pred = observations_test[np.argman(mle_estimates), :]
+
+mle_estimates_30 = np.empty([testing_parameter_space.shape[0], 2])
+tmp_array1 = np.empty([30, testing_parameter_space[0]])
+tmp_array2 = np.empty([30, 2])
+
+for l in range(observations_test_30.shape[0]):
+    for k in range(30):
+        for i in range(testing_parameter_space.shape[0]):
+            for j in range(30):
+                print(f"\nStarting MLE for {l}th sample {j}th realization using {i}th parameters\n")
+                tmp_array1[j, i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
+                                                           smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
+                                                           covariance_mat=cov_mats_test[:, :, i],
+                                                           observations=observations_test_30[l, :, :, j].reshape(256))
+                print(f"\nEnded MLE for {l}th sample {j}th realization using {i}th parameters\n")
+        print(f"\nFinding average maximum estimates for the {k}th realization\n")
+        point_of_interest = np.argmax(tmp_array1[k, :])
+        tmp_array2[k, 0] = testing_parameter_space[point_of_interest, 0]
+        tmp_array2[k, 1] = testing_parameter_space[point_of_interest, 1]
+        print(f"\nFound average maximum estimates for the {k}th realization\n")
+    print(f"\nSaving average maximum estimates for the {l}th sample\n")
+    mle_estimates_30[l, 0] = np.average(tmp_array2[:, 0])
+    mle_estimates_30[l, 1] = np.average(tmp_array2[:, 1])
+    print(f"\nSaved average maximum estimates for the {l}th sample\n")
 
 # ------- SAVE MLE PRED FOR THIRTY REALIZATIONS ------- #
 
-with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
-    np.save(file, mle_pred)
+with open("./tf_stat_reproduction/ML30/preds_ML30.npy", mode="wb") as file:
+    np.save(file, mle_estimates_30)
