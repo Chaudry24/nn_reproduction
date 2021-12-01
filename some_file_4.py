@@ -57,7 +57,7 @@ for i in range(training_parameter_space.shape[0]):
 
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
 observations_test = np.empty([testing_parameter_space.shape[0], 16, 16, 1])
-semi_variogram_test = np.empty([testing_parameter_space[0], 10])
+semi_variogram_test = np.empty([testing_parameter_space.shape[0], 10])
 for i in range(testing_parameter_space.shape[0]):
     print(f"\ngenerating testing data for the {i}th covariance matrix\n")
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
