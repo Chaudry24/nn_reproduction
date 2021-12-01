@@ -52,7 +52,7 @@ for i in range(training_parameter_space.shape[0]):
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
     semi_variogram_train[i, :] = tmp_var.ravel()
-    observations_train[i, :, :, :] = tmp_array.reshape(16, 16)
+    observations_train[i, :, :, :] = tmp_array.reshape(16, 16, 1)
     print(f"\ntraining data generated for the {i}th covariance matrix\n")
 
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
@@ -63,7 +63,7 @@ for i in range(testing_parameter_space.shape[0]):
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
     semi_variogram_test[i, :] = tmp_var.ravel()
-    observations_test[i, :, :, :] = tmp_array.reshape(16, 16)
+    observations_test[i, :, :, :] = tmp_array.reshape(16, 16, 1)
     print(f"\ntesting data generated for the {i}th covariance matrix\n")
 
 # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
@@ -96,6 +96,8 @@ for i in range(testing_parameter_space.shape[0]):
 def negative_log_likelihood(variance, spatial_range, smoothness, nugget,
                             covariance_mat, observations, n_points=256):
 
+    # ravel observations
+    observations = observations.ravel()
     # compute lower cholesky
     lower_cholesky = np.linalg.cholesky(covariance_mat)
     # first term of negative log likelihood function
