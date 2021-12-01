@@ -68,7 +68,7 @@ for i in range(testing_parameter_space.shape[0]):
 
 # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
 observations_train_30 = np.empty([training_parameter_space.shape[0], 16, 16, 30])
-semi_variogram_train_30 = np.empty([training_parameter_space[0], 10, 30])
+semi_variogram_train_30 = np.empty([training_parameter_space.shape[0], 10, 30])
 for i in range(training_parameter_space.shape[0]):
     print(f"\ngenerating training data for the {i}th covariance matrix\n")
     for j in range(30):
@@ -250,7 +250,7 @@ with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
 # ------- COMPUTE MLE FOR THIRTY REALIZATIONS ------- #
 
 mle_estimates_30 = np.empty([testing_parameter_space.shape[0], 2])
-tmp_array1 = np.empty([30, testing_parameter_space[0]])
+tmp_array1 = np.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = np.empty([30, 2])
 
 for l in range(observations_test_30.shape[0]):
