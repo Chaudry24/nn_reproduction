@@ -51,7 +51,7 @@ for i in range(training_parameter_space.shape[0]):
     print(f"\ngenerating training data for the {i}th covariance matrix\n")
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
-    semi_variogram_train[i, :] = tmp_var
+    semi_variogram_train[i, :] = tmp_var.ravel()
     observations_train[i, :, :, :] = tmp_array.reshape(16, 16)
     print(f"\ntraining data generated for the {i}th covariance matrix\n")
 
@@ -62,6 +62,7 @@ for i in range(testing_parameter_space.shape[0]):
     print(f"\ngenerating testing data for the {i}th covariance matrix\n")
     tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
+    semi_variogram_test[i, :] = tmp_var.ravel()
     observations_test[i, :, :, :] = tmp_array.reshape(16, 16)
     print(f"\ntesting data generated for the {i}th covariance matrix\n")
 
@@ -74,7 +75,7 @@ for i in range(training_parameter_space.shape[0]):
         print(f"\ngetting {j}th training realization from {i}th covariance matrix\n")
         tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
         tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1)
-        semi_variogram_train_30[i, :, j] = tmp_var
+        semi_variogram_train_30[i, :, j] = tmp_var.ravel()
         observations_train_30[i, :, :, j] = tmp_array.reshape(16, 16)
         print(f"\n{j}th training realization from {i}th covariance matrix generated\n")
 
@@ -87,7 +88,7 @@ for i in range(testing_parameter_space.shape[0]):
         print(f"\ngetting {j}th testing realization from {i}th covariance matrix\n")
         tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
         tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1)
-        semi_variogram_test_30[i, :, j] = tmp_var
+        semi_variogram_test_30[i, :, j] = tmp_var.ravel()
         observations_test_30[i, :, :, j] = tmp_array.reshape(16, 16)
         print(f"\n{j}th testing realization from {i}th covariance matrix generated\n")
 
