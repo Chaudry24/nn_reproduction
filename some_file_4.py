@@ -198,11 +198,11 @@ with open("./tf_stat_reproduction/NV30/training_loss_NV30.npy", mode="wb") as fi
 
 preds_NF = model_NF.predict(x=observations_test)
 
-preds_NF30 = model_NF.predict(x=observations_test_30)
+preds_NF30 = model_NF30.predict(x=observations_test_30)
 
-preds_NV = model_NF.predict(x=semi_variogram_test)
+preds_NV = model_NV.predict(x=semi_variogram_test)
 
-preds_NV30 = model_NF.predict(x=semi_variogram_test_30)
+preds_NV30 = model_NV30.predict(x=semi_variogram_test_30)
 
 # ------- SAVE PREDICTIONS FOR EACH NN ------- #
 
