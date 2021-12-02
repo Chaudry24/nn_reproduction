@@ -171,14 +171,14 @@ model_NV30.compile(optimizer=tf.optimizers.Adam(),
 history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
                           epochs=2)
 
-history_NF30 = model_NF.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
-                            epochs=2)
+history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
+                              epochs=2)
 
-history_NV = model_NF.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
+history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
                           epochs=2)
 
-history_NV30 = model_NF.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
-                            epochs=2)
+history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
+                              epochs=2)
 
 # ------- SAVE TRAINING LOSS FOR EACH NN ------- #
 
