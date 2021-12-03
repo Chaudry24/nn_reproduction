@@ -235,8 +235,8 @@ tmp_array = np.empty([observations_test.shape[0], testing_parameter_space.shape[
 for i in range(observations_test.shape[0]):
     for j in range(testing_parameter_space.shape[0]):
         print(f"\nStarting MLE for {i}th observation using {j}th parameters\n")
-        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
-                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
+        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
+                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
                                                   covariance_mat=cov_mats_test[:, :, i],
                                                   observations=observations_test[i, :].reshape(256))
         print(f"\nEnded MLE for {i}th observation using {j}th parameters\n")
@@ -261,8 +261,8 @@ for l in range(observations_test_30.shape[0]):
         for i in range(testing_parameter_space.shape[0]):
             for j in range(30):
                 print(f"\nStarting MLE for {l}th sample {j}th realization using {i}th parameters\n")
-                tmp_array1[j, i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 0],
-                                                           smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 1]),
+                tmp_array1[j, i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
+                                                           smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
                                                            covariance_mat=cov_mats_test[:, :, i],
                                                            observations=observations_test_30[l, :, :, j].reshape(256))
                 print(f"\nEnded MLE for {l}th sample {j}th realization using {i}th parameters\n")
