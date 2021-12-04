@@ -236,7 +236,9 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array = np.empty([observations_test.shape[0], testing_parameter_space.shape[0]])
+# for loop for each sample
 for i in range(observations_test.shape[0]):
+    # for loop for each parameter value
     for j in range(testing_parameter_space.shape[0]):
         print(f"\nStarting MLE for {i}th observation using {j}th parameters\n")
         tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
