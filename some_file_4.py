@@ -67,7 +67,7 @@ observations_test = np.empty([testing_parameter_space.shape[0], 16, 16, 1])
 semi_variogram_test = np.empty([testing_parameter_space.shape[0], 10])
 for i in range(testing_parameter_space.shape[0]):
     print(f"\ngenerating testing data for the {i}th covariance matrix\n")
-    tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
+    tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_test[:, :, i])
     tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1, bins=10)
     semi_variogram_test[i, :] = tmp_var.ravel()
     observations_test[i, :, :, :] = tmp_array.reshape(16, 16, 1)
@@ -93,7 +93,7 @@ for i in range(testing_parameter_space.shape[0]):
     print(f"\ngenerating testing data for the {i}th covariance matrix\n")
     for j in range(30):
         print(f"\ngetting {j}th testing realization from {i}th covariance matrix\n")
-        tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[:, :, i])
+        tmp_array = some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_test[:, :, i])
         tmp_var = some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array, realizations=1)
         semi_variogram_test_30[i, :, j] = tmp_var.ravel()
         observations_test_30[i, :, :, j] = tmp_array.reshape(16, 16)
@@ -176,16 +176,16 @@ model_NV30.compile(optimizer=tf.optimizers.Adam(),
 # ------- TRAIN DIFFERENT NNs ------- #
 
 history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
-                          epochs=2)
+                          epochs=500)
 
 history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
-                              epochs=2)
+                              epochs=500)
 
 history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
-                          epochs=2)
+                          epochs=500)
 
 history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
-                              epochs=2)
+                              epochs=500)
 
 # ------- SAVE TRAINING LOSS FOR EACH NN ------- #
 
@@ -219,10 +219,10 @@ with open("./tf_stat_reproduction/NF/preds_NF.npy", mode="wb") as file:
 with open("./tf_stat_reproduction/NF30/preds_NF30.npy", mode="wb") as file:
     np.save(file, preds_NF30)
 
-with open("./tf_stat_reproduction/NF/preds_NV.npy", mode="wb") as file:
+with open("./tf_stat_reproduction/NV/preds_NV.npy", mode="wb") as file:
     np.save(file, preds_NV)
 
-with open("./tf_stat_reproduction/NF/preds_NV30.npy", mode="wb") as file:
+with open("./tf_stat_reproduction/NV30/preds_NV30.npy", mode="wb") as file:
     np.save(file, preds_NV30)
 
 # ------- SAVE TRAINED NNs ------- #
@@ -236,13 +236,16 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array = np.empty([observations_test.shape[0], testing_parameter_space.shape[0]])
+# for loop for each sample
 for i in range(observations_test.shape[0]):
+    # for loop for each parameter value
     for j in range(testing_parameter_space.shape[0]):
         print(f"\nStarting MLE for {i}th observation using {j}th parameters\n")
-        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
-                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
-                                                  covariance_mat=cov_mats_test[:, :, i],
+        tmp_array[i, j] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[j, 1],
+                                                  smoothness=1.0, nugget=np.exp(testing_parameter_space[j, 0]),
+                                                  covariance_mat=cov_mats_test[:, :, j],
                                                   observations=observations_test[i, :].reshape(256))
+        print(f"\nThe MLE for {i}th observation using {j}th parameters is {tmp_array[i, j]}\n")
         print(f"\nEnded MLE for {i}th observation using {j}th parameters\n")
     print(f"\nSaving the maximum estimates for the {i}th sample\n")
     mle_estimates[i, 0] = testing_parameter_space[np.argmin(tmp_array[i, :]), 0]
@@ -260,18 +263,23 @@ mle_estimates_30 = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array1 = np.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = np.empty([30, 2])
 
+# for loop for each sample
 for l in range(observations_test_30.shape[0]):
+    # for loop to save min parameters for each realization
     for k in range(30):
+        # for loop for each parameter value
         for i in range(testing_parameter_space.shape[0]):
+            # for loop for each realization
             for j in range(30):
                 print(f"\nStarting MLE for {l}th sample {j}th realization using {i}th parameters\n")
                 tmp_array1[j, i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
                                                            smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
                                                            covariance_mat=cov_mats_test[:, :, i],
                                                            observations=observations_test_30[l, :, :, j].reshape(256))
+                print(f"\nThe MLE for {l}th sample {j}th realization using {i}th parameters is {tmp_array1[j, i]}\n")
                 print(f"\nEnded MLE for {l}th sample {j}th realization using {i}th parameters\n")
         print(f"\nFinding average maximum estimates for the {k}th realization\n")
-        point_of_interest = np.argmax(tmp_array1[k, :])
+        point_of_interest = np.argmin(tmp_array1[k, :])
         tmp_array2[k, 0] = testing_parameter_space[point_of_interest, 0]
         tmp_array2[k, 1] = testing_parameter_space[point_of_interest, 1]
         print(f"\nFound average maximum estimates for the {k}th realization\n")
