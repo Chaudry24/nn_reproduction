@@ -219,10 +219,10 @@ with open("./tf_stat_reproduction/NF/preds_NF.npy", mode="wb") as file:
 with open("./tf_stat_reproduction/NF30/preds_NF30.npy", mode="wb") as file:
     np.save(file, preds_NF30)
 
-with open("./tf_stat_reproduction/NF/preds_NV.npy", mode="wb") as file:
+with open("./tf_stat_reproduction/NV/preds_NV.npy", mode="wb") as file:
     np.save(file, preds_NV)
 
-with open("./tf_stat_reproduction/NF/preds_NV30.npy", mode="wb") as file:
+with open("./tf_stat_reproduction/NV30/preds_NV30.npy", mode="wb") as file:
     np.save(file, preds_NV30)
 
 # ------- SAVE TRAINED NNs ------- #
