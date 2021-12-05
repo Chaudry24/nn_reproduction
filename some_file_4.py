@@ -10,6 +10,9 @@ x = x.ravel()
 y = y.ravel()
 spatial_grid = np.array([x, y]).T
 
+# set number of epochs
+n_epochs = 1000
+
 # COMPUTE DISTANCE MATRIX
 spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
 
@@ -176,16 +179,16 @@ model_NV30.compile(optimizer=tf.optimizers.Adam(),
 # ------- TRAIN DIFFERENT NNs ------- #
 
 history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
-                          epochs=500)
+                          epochs=n_epochs)
 
 history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
-                              epochs=500)
+                              epochs=n_epochs)
 
 history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
-                          epochs=500)
+                          epochs=n_epochs)
 
 history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
-                              epochs=500)
+                              epochs=n_epochs)
 
 # ------- SAVE TRAINING LOSS FOR EACH NN ------- #
 
