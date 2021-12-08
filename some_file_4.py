@@ -1,6 +1,9 @@
 import numpy as np
 import tensorflow as tf
 import some_file_1
+import dask
+# import dask.distributed
+import graphviz
 
 # SPATIAL GRID
 x = np.linspace(1, 16, 16)
@@ -18,7 +21,7 @@ spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spat
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = np.load(file)
+    training_parameter_space = np.load(file)[0:100, :]
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
@@ -32,14 +35,22 @@ with open("npy/test_subset.npy", mode="wb") as file:
     np.save(file, testing_parameter_space)
 
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
-cov_mats_train = np.empty([256, 256, training_parameter_space.shape[0]])
+# cov_mats_train = np.empty([256, 256, training_parameter_space.shape[0]])
+tmp_array = np.empty([])
 for i in range(training_parameter_space.shape[0]):
     print(f"\ngenerating training covariance matrix for {i}th value\n")
-    cov_mats_train[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
-                                                                     distance_matrix=spatial_distance,
-                                                                     variance=1.0, smoothness=1.0,
-                                                                     spatial_range=training_parameter_space[i, 1],
-                                                                     nugget=np.exp(training_parameter_space[i, 0]))
+    # cov_mats_train[:, :, i] = some_file_1.Spatial.compute_covariance(covariance_type="matern",
+    #                                                                  distance_matrix=spatial_distance,
+    #                                                                  variance=1.0, smoothness=1.0,
+    #                                                                  spatial_range=training_parameter_space[i, 1],
+    #                                                                  nugget=np.exp(training_parameter_space[i, 0]))
+    tmp_array = np.stack([dask.delayed(some_file_1.Spatial.compute_covariance)
+                          (covariance_type="matern", distance_matrix=spatial_distance,
+                           variance=1.0, smoothness=1.0,
+                           spatial_range=training_parameter_space[i, 1],
+                           nugget=np.exp(training_parameter_space[i, 0])).persist()
+                          for i in range(training_parameter_space.shape[0])])
+    tmp_array = np.stack([computations.persist()[0] for computations in tmp_array])
     print(f"\ntraining covariance matrix for {i}th value generated\n")
 
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
