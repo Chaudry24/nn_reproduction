@@ -30,9 +30,9 @@ class Spatial:
         self.domain = self.generate_grid()
         self.distance_matrix = self.compute_distance(self.domain[:, 0], self.domain[:, 1],
                                                      self.distance_metric)
-        self.covariance = self.compute_covariance(self.covariance_type, self.distance_matrix,
-                                                  variance=self.variance, smoothness=self.smoothness,
-                                                  spatial_range=self.spatial_range, nugget=self.nugget)
+        self.covariance_lower_cholesky = self.compute_covariance(self.covariance_type, self.distance_matrix,
+                                                                 self.variance, self.smoothness,
+                                                                 self.spatial_range, self.nugget)
         self.observed_data = self.observations()
 
     @staticmethod
@@ -79,6 +79,7 @@ class Spatial:
             return distance_matrix
 
     @staticmethod
+    @retry(np.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
     def compute_covariance(covariance_type, distance_matrix,
                            variance, smoothness, spatial_range, nugget,
                            n_points=256):
@@ -96,41 +97,39 @@ class Spatial:
             # compute eigen decomposition of matern matrix
             # TODO debug the code by printing eigen vals at each iteration
             # TODO fix the code by manually making it positive definite
-            smallest_eigenval = np.min(np.linalg.eigvals(matern_covariance))
-            print(f"\nThe smallest eigenvalue is: {smallest_eigenval}\n")
+            # smallest_eigenval = np.min(np.linalg.eigvals(matern_covariance))
+            # print(f"\nThe smallest eigenvalue is: {smallest_eigenval}\n")
             # add nugget if it is present
             if nugget > 0:
                 matern_covariance += nugget * np.eye(n_points)
-            smallest_eigenval2 = np.min(np.linalg.eigvals(matern_covariance))
-            print(f"\nThe smallest eigenvalue is: {smallest_eigenval2}\n")
-            # add a small perturbation/nugget effect for numerical stability
-            # matern_covariance += 1e-3 * np.eye(n_points)
-            return matern_covariance
+            # smallest_eigenval2 = np.min(np.linalg.eigvals(matern_covariance))
+            # print(f"\nThe smallest eigenvalue is: {smallest_eigenval2}\n")
+            # # add a small perturbation/nugget effect for numerical stability
+            # # matern_covariance += 1e-3 * np.eye(n_points)
+            # compute cholesky decomposition and force to rerun if error
+            chol_decomp = np.linalg.cholesky(matern_covariance)
+            return matern_covariance, chol_decomp
         else:
             pass
 
     @staticmethod
-    def observations(realizations, covariance, n_points=256):
+    def observations(realizations, lower_chol_of_covariance, n_points=256):
         """Returns observations from a GP with a given covariance"""
         if realizations == 1:
             # generate iid normal vector
             iid_data = np.random.randn(n_points, 1)
-            # find lower cholesky decomposition of covariance matrix
-            chol_decomp_lower = np.linalg.cholesky(covariance)
             # multiply the iid data by lower cholesky to get correlated data
-            observed_data = chol_decomp_lower @ iid_data
+            observed_data = lower_chol_of_covariance @ iid_data
             return observed_data.reshape(n_points, 1)
         elif realizations > 1:
             # initialize memory for observed data
             observed_data = np.empty((n_points, realizations))
-            # find lower cholesky decomposition of covariance matrix
-            chol_decomp_lower = np.linalg.cholesky(covariance)
             # TODO: parallelize this loop
             for i in range(realizations):
                 # generate iid normal vector
                 iid_data = np.random.randn(n_points)
                 # save each realization of correlated vector by multiplying to lower cholesky
-                observed_data[:, i] = chol_decomp_lower @ iid_data
+                observed_data[:, i] = lower_chol_of_covariance @ iid_data
             return observed_data
         else:
             return SyntaxError("realizations need to be greater than or equal to 1")
@@ -204,23 +203,20 @@ class Optimization(Spatial):
         self.observations = observations
         self.distance_matrix = distance_matrix
         self.optim_method = optim_method
-        self.covariance = self.compute_covariance(self.covariance_type, self.distance_matrix,
-                                                  variance=self.variance, smoothness=self.smoothness,
-                                                  spatial_range=self.spatial_range, nugget=self.nugget,
-                                                  n_points=self.n_points)
+        self.covariance_cholesky = self.compute_covariance(self.covariance_type, self.distance_matrix,
+                                                           variance=self.variance, smoothness=self.smoothness,
+                                                           spatial_range=self.spatial_range, nugget=self.nugget,
+                                                           n_points=self.n_points)
         self.objective_value = self.objective_function(variance=self.variance, spatial_range=self.spatial_range,
                                                        smoothness=self.smoothness, nugget=self.nugget)
 
     def objective_function(self, variance, spatial_range,
                            smoothness, nugget, n_points=256):
         """Computes the objective functional"""
-        # compute the covariance matrix
-        covariance_mat = self.compute_covariance(self.covariance_type, self.distance_matrix,
-                                                 variance=variance, smoothness=smoothness,
-                                                 spatial_range=spatial_range, nugget=nugget,
-                                                 n_points=n_points)
-        # compute lower cholesky matrix
-        lower_cholesky = np.linalg.cholesky(covariance_mat)
+        # get the covariance matrix
+        covariance_mat = self.covariance_cholesky[0]
+        # get the lower cholesky matrix
+        lower_cholesky = self.covariance_cholesky[1]
         # add a small perturbation to lower cholesky for stability
         # lower_cholesky += 1e-3 * np.eye(n_points)
         # the first term of the negative log likelihood function
@@ -373,9 +369,10 @@ class Optimization(Spatial):
                     "smoothness": self.smoothness, "nugget": self.nugget,
                     "norm_current_gradient": norm_current_gradient, "objective_value": self.objective_value}
 
-#
-# r = 1000
-# field = Spatial(realizations=r)
+
+# x = np.abs(np.random.randn(100, 100))
+# field = Spatial().compute_covariance()
+# 1+1
 # # # field.plot_observed_data()
 # observations = field.observations()
 # # obs_dis = field.compute_distance(observations, observations)
