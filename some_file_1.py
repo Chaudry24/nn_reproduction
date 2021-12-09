@@ -90,7 +90,7 @@ class Spatial:
             # compute first three terms
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
             second_term = (distance_matrix / spatial_range) ** smoothness
-            third_term = cp.array(kv(smoothness, distance_matrix.get() / spatial_range))  # convert distance matrix to numpy array
+            third_term = cp.array(kv(smoothness, distance_matrix.get() / spatial_range.get()))  # convert distance matrix to numpy array
             # multiply to get matern covariance
             matern_covariance = first_term * second_term * third_term
             # replace inf and nan on the diagonals by the variance
