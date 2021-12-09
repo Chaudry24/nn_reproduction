@@ -203,15 +203,19 @@ for i in range(n_epochs):
             observations_train_30[i, :, :, j] = tmp1[j, :]
             semi_variogram_train_30[i, :, j] = tmp2[:, j]
 
+    print(f"\n{observations_train.shape} and {training_parameter_space.shape}\n")
     history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
                               epochs=2)
 
+    print(f"\n{observations_train_30.shape} and {training_parameter_space.shape}\n")
     history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
                                   epochs=2)
 
+    print(f"\n{semi_variogram_train.shape} and {training_parameter_space.shape}\n")
     history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
                               epochs=2)
 
+    print(f"\n{semi_variogram_train_30.shape} and {training_parameter_space.shape}\n")
     history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
                                   epochs=2)
 
