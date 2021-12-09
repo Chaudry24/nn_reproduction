@@ -87,15 +87,19 @@ tmp2 = np.array(
     [some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
      range(30 * testing_parameter_space.shape[0])])
 
+print(f"\n{tmp2.shape}\n")
 for i in range(training_parameter_space.shape[0]):
     for j in range(30):
+        print(tmp2[j + 30 * i, :])
+        print(tmp2[j + 30 * i, :].shape)
         observations_test_30[i, :, :, j] = tmp1[j, :]
-        semi_variogram_test_30[i, :, j] = tmp2[:, j]
+        semi_variogram_test_30[i, :, j] = tmp2[j + 30 * i, :]
+
 
 # delete temp arrays before next use
-    del tmp1
-    del tmp2
-    del tmp_array
+del tmp1
+del tmp2
+del tmp_array
 
 
 def negative_log_likelihood(variance, spatial_range, smoothness, nugget,
