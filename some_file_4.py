@@ -293,7 +293,6 @@ with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
 # delete tmp_array before next use
 del tmp_array
 del tmp1
-del tmp2
 
 mle_estimates_30 = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array1 = np.empty([30, testing_parameter_space.shape[0]])
