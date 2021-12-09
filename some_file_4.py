@@ -280,10 +280,6 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 # ------- COMPUTE MLE FOR A SINGLE REALIZATION ------- #
 
-# delete tmp_array before next use
-del tmp_array
-del tmp1
-del tmp2
 
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array = np.array([dask.delayed(negative_log_likelihood)
