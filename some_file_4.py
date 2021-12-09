@@ -73,12 +73,10 @@ tmp_array = np.array(
      for i in range(testing_parameter_space.shape[0])])
 observations_test = cp.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
 for i in range(testing_parameter_space.shape[0]):
-    print(type(spatial_grid))
-    print(type(observations_test[i, :].reshape(256, 1).get()))
-    print(type(observations_test[i, :].reshape(256, 1)))
-    print(some_file_1.Spatial.compute_semivariogram(spatial_grid,
-                                                         observations_test[i, :].reshape(256, 1).get(),
-                                                         realizations=1, bins=10))
+    print(f"spatial grid: {type(spatial_grid)}")
+    print(f"observation test .get {type(observations_test[i, :].reshape(256, 1).get())}")
+    print(f"observation test {type(observations_test[i, :].reshape(256, 1))}")
+    print(f"variogram {some_file_1.Spatial.compute_semivariogram(spatial_grid, observations_test[i, :].reshape(256, 1).get(), realizations = 1, bins = 10)}")
 semi_variogram_test = cp.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                           observations_test[i, :].reshape(256, 1).get(),
                                                                           realizations=1, bins=10).ravel() for i in
