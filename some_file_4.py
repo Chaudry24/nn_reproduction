@@ -317,14 +317,14 @@ tmp_array = np.array([dask.delayed(negative_log_likelihood)
                        observations=observations_test[i, :].reshape(256)).persist() for i in range(observations_test.shape[0])
                       for j in range(testing_parameter_space.shape[0])])
 for i in range(observations_test.shape[0]):
-    tmp1 = cp.array([tmp_array[j].compute() for j in range(i * testing_parameter_space.shape[0], (i + 1) * testing_parameter_space.shape[0])])
+    tmp1 = np.array([tmp_array[j].compute() for j in range(i * testing_parameter_space.shape[0], (i + 1) * testing_parameter_space.shape[0])])
     mle_estimates[i, 0] = testing_parameter_space[np.argmin(tmp1), 0]
     mle_estimates[i, 1] = testing_parameter_space[np.argmin(tmp1), 1]
 
 # ------- SAVE MLE PRED FOR A SINGLE REALIZATION ------- #
 
 with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
-    np.save(file, mle_estimates.get())
+    np.save(file, mle_estimates)
 
 # ------- COMPUTE MLE FOR THIRTY REALIZATIONS ------- #
 
@@ -332,7 +332,7 @@ with open("./tf_stat_reproduction/ML/preds_MLE.npy", mode="wb") as file:
 del tmp_array
 del tmp1
 
-mle_estimates_30 = cp.empty([testing_parameter_space.shape[0], 2])
+mle_estimates_30 = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array1 = cp.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = cp.empty([30, 2])
 
@@ -348,10 +348,10 @@ for l in range(observations_test_30.shape[0]):
     # tmp3 gives point of interest for each realization
     tmp3 = cp.array([np.argmin(tmp2[i * 30: (i + 1) * 30]) for i in range(testing_parameter_space.shape[0])])
     # compute average for the point of interest for each realization
-    tmp4 = cp.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
+    tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
-    mle_estimates_30[l, 0] = cp.average(tmp4[:, 0])
-    mle_estimates_30[l, 1] = cp.average(tmp4[:, 1])
+    mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
+    mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
 
 # for loop for each sample
 # for l in range(observations_test_30.shape[0]):
@@ -381,4 +381,4 @@ for l in range(observations_test_30.shape[0]):
 # ------- SAVE MLE PRED FOR THIRTY REALIZATIONS ------- #
 
 with open("./tf_stat_reproduction/ML30/preds_ML30.npy", mode="wb") as file:
-    np.save(file, mle_estimates_30.get())
+    np.save(file, mle_estimates_30)
