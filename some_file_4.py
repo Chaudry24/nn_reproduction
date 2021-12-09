@@ -175,6 +175,14 @@ model_NV30.compile(optimizer=tf.optimizers.Adam(),
                    loss=tf.losses.MeanAbsoluteError(),
                    metrics=[tf.metrics.RootMeanSquaredError()])
 
+# empty lists to store losses
+
+loss_NF = []
+loss_NF30 = []
+loss_NV = []
+loss_NV30 = []
+
+
 # ------- TRAIN DIFFERENT NNs ------- #
 
 for i in range(n_epochs):
@@ -233,19 +241,30 @@ for i in range(n_epochs):
     history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
                                   epochs=2)
 
+    # store losses for each "epoch"
+    loss_NF.append(history_NF.history["loss"])
+    loss_NF30.append(history_NF30.history["loss"])
+    loss_NV30.append(history_NV.history["loss"])
+    loss_NV30.append(history_NV30.history["loss"])
+
 # ------- SAVE TRAINING LOSS FOR EACH NN ------- #
 
+loss_NF = np.array([nums for lists in loss_NF for nums in lists])
+loss_NF30 = np.array([nums for lists in loss_NF30 for nums in lists])
+loss_NV = np.array([nums for lists in loss_NV for nums in lists])
+loss_NV30 = np.array([nums for lists in loss_NV30 for nums in lists])
+
 with open("./tf_stat_reproduction/NF/training_loss_NF.npy", mode="wb") as file:
-    np.save(file, history_NF.history["loss"])
+    np.save(file, loss_NF)
 
 with open("./tf_stat_reproduction/NF30/training_loss_NF30.npy", mode="wb") as file:
-    np.save(file, history_NF30.history["loss"])
+    np.save(file, loss_NF30)
 
 with open("./tf_stat_reproduction/NV/training_loss_NV.npy", mode="wb") as file:
-    np.save(file, history_NV.history["loss"])
+    np.save(file, loss_NV)
 
 with open("./tf_stat_reproduction/NV30/training_loss_NV30.npy", mode="wb") as file:
-    np.save(file, history_NV30.history["loss"])
+    np.save(file, loss_NV30)
 
 # ------- GET PREDICTIONS FOR EACH NN ------- #
 
