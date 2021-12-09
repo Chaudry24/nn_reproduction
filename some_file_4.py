@@ -41,7 +41,7 @@ testing_parameter_space = cp.array(testing_parameter_space)
 
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
 # send computations to the scheduler
-tmp_array = cp.array([dask.delayed(some_file_1.Spatial.compute_covariance)
+tmp_array = np.array([dask.delayed(some_file_1.Spatial.compute_covariance)
                       (covariance_type="matern", distance_matrix=spatial_distance,
                        variance=1.0, smoothness=1.0,
                        spatial_range=training_parameter_space[i, 1],
@@ -55,7 +55,7 @@ del tmp_array
 
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 # send computations to the scheduler
-tmp_array = cp.array([dask.delayed(some_file_1.Spatial.compute_covariance)
+tmp_array = np.array([dask.delayed(some_file_1.Spatial.compute_covariance)
                       (covariance_type="matern", distance_matrix=spatial_distance,
                        variance=1.0, smoothness=1.0,
                        spatial_range=training_parameter_space[i, 1],
@@ -68,7 +68,7 @@ cov_mats_test = cp.array([computations.compute() for computations in tmp_array])
 del tmp_array
 
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
-tmp_array = cp.array(
+tmp_array = np.array(
     [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
      for i in range(testing_parameter_space.shape[0])])
 observations_test = cp.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
@@ -83,7 +83,7 @@ del tmp_array
 # GENERATE OBSERVATIONS FOR TESTING FOR THIRTY REALIZATIONS
 observations_test_30 = cp.empty([testing_parameter_space.shape[0], 16, 16, 30])
 semi_variogram_test_30 = cp.empty([testing_parameter_space.shape[0], 10, 30])
-tmp_array = cp.array(
+tmp_array = np.array(
     [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
      for i in range(testing_parameter_space.shape[0]) for j in range(30)])
 tmp1 = cp.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * testing_parameter_space.shape[0])])
@@ -195,7 +195,7 @@ for i in range(n_epochs):
     print(f"starting epoch {i}")
 
     # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
-    tmp_array = cp.array(
+    tmp_array = np.array(
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
          for i in range(training_parameter_space.shape[0])])
     observations_train = cp.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
@@ -210,7 +210,7 @@ for i in range(n_epochs):
     # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
     observations_train_30 = cp.empty([training_parameter_space.shape[0], 16, 16, 30])
     semi_variogram_train_30 = cp.empty([training_parameter_space.shape[0], 10, 30])
-    tmp_array = cp.array(
+    tmp_array = np.array(
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
          for i in range(training_parameter_space.shape[0]) for j in range(30)])
     tmp1 = cp.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])])
@@ -305,7 +305,7 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
-tmp_array = cp.array([dask.delayed(negative_log_likelihood)
+tmp_array = np.array([dask.delayed(negative_log_likelihood)
                       (variance=1.0, spatial_range=testing_parameter_space[j, 1],
                        smoothness=1.0, nugget=np.exp(testing_parameter_space[j, 0]),
                        covariance_mat=cov_mats_test[j, :, :],
@@ -332,7 +332,7 @@ tmp_array1 = cp.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = cp.empty([30, 2])
 
 for l in range(observations_test_30.shape[0]):
-    tmp1 = cp.array([dask.delayed(negative_log_likelihood)
+    tmp1 = np.array([dask.delayed(negative_log_likelihood)
                      (variance=1.0, spatial_range=testing_parameter_space[i, 1],
                       smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
                       covariance_mat=cov_mats_test[i, :, :],
