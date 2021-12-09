@@ -310,6 +310,7 @@ for l in range(observations_test_30.shape[0]):
     # tmp3 gives point of interest for each realization
     tmp3 = np.stack([np.argmin(tmp2[i * 30: (i + 1) * 30]) for i in range(testing_parameter_space.shape[0])])
     # compute average for the point of interest
+    print(f"\n{tmp3}\n")
     tmp4 = testing_parameter_space[tmp3, :]
     # save the averages
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
