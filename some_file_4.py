@@ -207,8 +207,10 @@ for i in range(n_epochs):
 
     for i in range(training_parameter_space.shape[0]):
         for j in range(30):
+            print(tmp2[j + 30 * i, :])
+            print(tmp2[j + 30 * i, :].shape)
             observations_train_30[i, :, :, j] = tmp1[j, :]
-            semi_variogram_train_30[i, :, j] = tmp2[:, j]
+            semi_variogram_train_30[i, :, j] = tmp2[j + 30 * i, :]
 
     # delete temp arrays before next use
     del tmp1
