@@ -15,7 +15,7 @@ y = y.ravel()
 spatial_grid = np.array([x, y]).T
 
 # set number of epochs
-n_epochs = 1000
+n_epochs = 10
 
 # COMPUTE DISTANCE MATRIX
 spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
@@ -26,10 +26,10 @@ with open("npy/training_201_200_y.npy", mode="rb") as file:
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 50
+    n_test_samples = 2
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
-    testing_parameter_space = testing_parameter_space[test_sample_indices][0:2]
+    testing_parameter_space = testing_parameter_space[test_sample_indices]
 
 # SAVE TESTING PARAMETER SUBSET
 with open("npy/test_subset.npy", mode="wb") as file:
