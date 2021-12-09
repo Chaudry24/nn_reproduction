@@ -383,3 +383,6 @@ for l in range(observations_test_30.shape[0]):
 
 with open("./tf_stat_reproduction/ML30/preds_ML30.npy", mode="wb") as file:
     np.save(file, mle_estimates_30)
+
+print("\nScript has successfully ended")
+
