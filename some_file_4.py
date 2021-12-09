@@ -150,7 +150,7 @@ for i in range(n_epochs):
     semi_variogram_train = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                                observations_train[i, :].reshape(256, 1),
                                                                                realizations=1, bins=10).ravel() for i in
-                                     range(training_parameter_space.shape[0])], 1)
+                                     range(training_parameter_space.shape[0])], 0)
 
     # delete tmp_array before next use
     del tmp_array
