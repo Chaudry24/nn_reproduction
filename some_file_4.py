@@ -280,8 +280,8 @@ tmp_array = np.stack([dask.delayed(negative_log_likelihood)
                       for j in range(testing_parameter_space.shape[0])], 0)
 for i in range(observations_test.shape[0]):
     tmp1 = np.stack([tmp_array[j].compute() for j in range(i * testing_parameter_space.shape[0], (i + 1) * testing_parameter_space.shape[0])])
-    mle_estimates[i, 0] = testing_parameter_space(np.argmin(tmp1), 0)
-    mle_estimates[i, 1] = testing_parameter_space(np.argmin(tmp1), 1)
+    mle_estimates[i, 0] = testing_parameter_space[np.argmin(tmp1), 0]
+    mle_estimates[i, 1] = testing_parameter_space[np.argmin(tmp1), 1]
 
 # ------- SAVE MLE PRED FOR A SINGLE REALIZATION ------- #
 
