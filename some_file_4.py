@@ -345,10 +345,11 @@ for l in range(observations_test_30.shape[0]):
                      for i in range(testing_parameter_space.shape[0])
                      for j in range(30)])
     tmp2 = cp.array([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
-    # tmp3 gives point of interest for each realization
-    tmp3 = cp.array([np.argmin(tmp2[i * 30: (i + 1) * 30]) for i in range(testing_parameter_space.shape[0])])
-    # compute average for the point of interest for each realization
-    tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
+    # tmp3 gives the index of point of interest for each realization
+    tmp3 = cp.array([cp.argmin(tmp2[i + j]) for i in range(testing_parameter_space.shape[0]) for j in range(30)])
+    # store the value at the point of interest for each realization
+    tmp4 = testing_parameter_space[tmp3.get(), :]
+    # tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
