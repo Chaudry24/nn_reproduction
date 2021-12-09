@@ -9,5 +9,4 @@
 #SBATCH --mail-user=machaudry@uh.edu
 #SBATCH --mail-type=END
 
-module load python/3.9
-python -u some_file_6.py
+/project/jun/machaudr/miniconda3.9/envs/myenv/python -u some_file_6.py
