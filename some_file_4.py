@@ -174,7 +174,6 @@ for i in range(n_epochs):
     tmp_array = np.stack(
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
          for i in range(training_parameter_space.shape[0]) for j in range(30)], 0)
-    1+1
     tmp1 = np.stack([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])], 0)
     tmp2 = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
                      range(30 * training_parameter_space.shape[0])], 1)
@@ -196,7 +195,7 @@ for i in range(n_epochs):
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
          for i in range(testing_parameter_space.shape[0]) for j in range(30)], 0)
     tmp1 = np.stack([tmp_array[i].compute().reshape(16, 16) for i in range(30 * testing_parameter_space.shape[0])], 0)
-    tmp2 = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].ravel(), 1).ravel() for i in
+    tmp2 = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
                      range(30 * testing_parameter_space.shape[0])], 1)
 
     for i in range(training_parameter_space.shape[0]):
