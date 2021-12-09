@@ -337,6 +337,7 @@ tmp_array1 = cp.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = cp.empty([30, 2])
 
 for l in range(observations_test_30.shape[0]):
+    # send MLE computations to the scheduler
     tmp1 = np.array([dask.delayed(negative_log_likelihood)
                      (variance=1.0, spatial_range=testing_parameter_space[i, 1],
                       smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
@@ -344,13 +345,31 @@ for l in range(observations_test_30.shape[0]):
                       observations=observations_test_30[l, :, :, j].reshape(256))
                      for i in range(testing_parameter_space.shape[0])
                      for j in range(30)])
+    # compute MLE
     tmp2 = cp.array([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
     # tmp3 gives the index of point of interest for each realization
-    tmp3 = cp.array([cp.argmin(tmp2[i + j]) for i in range(testing_parameter_space.shape[0]) for j in range(30)])
-    # store the value at the point of interest for each realization
-    tmp4 = testing_parameter_space[tmp3.get(), :]
+    # tmp3 = cp.array([tmp2[i, k] for k in range(30) for i in range(0, testing_parameter_space.shape[0], 30 + k)])
+    tmp_list = []
+    tmp_list2 = []
+    for i in range(testing_parameter_space.shape[0]):
+        for j in range(30):
+            # save MLE estimate indices for parameter i and realization j
+            tmp_list.append(i + j * 30)
+        # get MLE estimates for the above parameters
+        tmp3 = np.array(tmp2[tmp_list].get())
+        # empty out the tmp_list
+        tmp_list = []
+        # save the index of the minimum parameter for current realization
+        tmp_list2.append(np.argmin(tmp3))
+    # # find index of minimum parameter for each realization
+    # for k in range(30):
+    #     tmp_list2.append(np.argmin(tmp2[k: (k + 1)]))
+    # tmp3 = cp.array([cp.argmin(tmp2[i + j]) for i in range(testing_parameter_space.shape[0]) for j in range(30)])
+    # store parameter values at the point of interest for each realization
+    tmp4 = testing_parameter_space[tmp_list2, :].get()
     # tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
+    print(tmp4)
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
 
