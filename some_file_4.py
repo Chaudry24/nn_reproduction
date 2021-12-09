@@ -4,7 +4,7 @@ import some_file_1
 import dask
 # import dask.distributed
 # import graphviz
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # SPATIAL GRID
 x = np.linspace(1, 16, 16)
