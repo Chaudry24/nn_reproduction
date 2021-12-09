@@ -357,10 +357,16 @@ for l in range(observations_test_30.shape[0]):
             tmp_list.append(i + j * 30)
         # get MLE estimates for the above parameters
         tmp3 = np.array(tmp2[tmp_list].get())
+        # print tmp_list for debugging
+        print(f"tmp_list: {tmp_list}")
+        # print tmp3 for debugging
+        print(f"tmp3: {tmp3}")
         # empty out the tmp_list
         tmp_list = []
         # save the index of the minimum parameter for current realization
         tmp_list2.append(np.argmin(tmp3))
+        # print tmp_list2 for debugging
+        print(f"tmp_list2: {tmp_list2}")
     # # find index of minimum parameter for each realization
     # for k in range(30):
     #     tmp_list2.append(np.argmin(tmp2[k: (k + 1)]))
