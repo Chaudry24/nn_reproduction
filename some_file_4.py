@@ -76,9 +76,9 @@ for i in range(testing_parameter_space.shape[0]):
     print(type(spatial_grid))
     print(type(observations_test[i, :].reshape(256, 1).get()))
     print(type(observations_test[i, :].reshape(256, 1)))
-    print(type(some_file_1.Spatial.compute_semivariogram(spatial_grid,
+    print(some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                          observations_test[i, :].reshape(256, 1).get(),
-                                                         realizations=1, bins=10).ravel()))
+                                                         realizations=1, bins=10))
 semi_variogram_test = cp.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                           observations_test[i, :].reshape(256, 1).get(),
                                                                           realizations=1, bins=10).ravel() for i in
