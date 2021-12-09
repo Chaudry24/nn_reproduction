@@ -1,5 +1,6 @@
 import matplotlib.colors
 import numpy as np
+import numpy
 import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
@@ -79,7 +80,7 @@ class Spatial:
             return distance_matrix
 
     @staticmethod
-    @retry(np.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
+    @retry(numpy.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
     def compute_covariance(covariance_type, distance_matrix,
                            variance, smoothness, spatial_range, nugget,
                            n_points=256):

@@ -2,4 +2,3 @@
 mle_nn.*
 __pycache__
 .ipynb_checkpoints
-tf_stat_reproduction
