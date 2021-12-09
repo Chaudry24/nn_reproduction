@@ -176,7 +176,8 @@ class Spatial:
                                       bins=bins).experimental
             # save the empirical semivariogram
             variogram[:, i] = tmp_array
-        # return the empirical semivariogra        return variogram
+        # return the empirical semivariogra
+        return variogram
 
     def plot_covariogram(self):
         """Makes a scatter plot of the covariogram"""
