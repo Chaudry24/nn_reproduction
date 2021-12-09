@@ -351,8 +351,9 @@ for l in range(observations_test_30.shape[0]):
     # tmp3 = cp.array([tmp2[i, k] for k in range(30) for i in range(0, testing_parameter_space.shape[0], 30 + k)])
     tmp_list = []
     tmp_list2 = []
+    print(f"testing parameter space shape: {testing_parameter_space.shape}")
     for i in range(testing_parameter_space.shape[0]):
-        for j in range(30):
+        for j in range(testing_parameter_space.shape[0]):
             # save MLE estimate indices for parameter i and realization j
             tmp_list.append(i + j * 30)
         # get MLE estimates for the above parameters
