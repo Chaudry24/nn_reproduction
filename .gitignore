@@ -1,5 +1,4 @@
 .DS_Store
 mle_nn.*
-*.sh
 __pycache__
 .ipynb_checkpoints
