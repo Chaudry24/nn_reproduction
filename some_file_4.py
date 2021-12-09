@@ -22,11 +22,11 @@ spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spat
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = np.load(file)
+    training_parameter_space = np.load(file)[0:2, :]
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 50
+    n_test_samples = 2
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
@@ -37,32 +37,65 @@ with open("npy/test_subset.npy", mode="wb") as file:
 
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
 # send computations to the scheduler
-tmp_array = np.stack([dask.delayed(some_file_1.Spatial.compute_covariance)
+tmp_array = np.array([dask.delayed(some_file_1.Spatial.compute_covariance)
                       (covariance_type="matern", distance_matrix=spatial_distance,
                        variance=1.0, smoothness=1.0,
                        spatial_range=training_parameter_space[i, 1],
                        nugget=np.exp(training_parameter_space[i, 0])).persist()
                       for i in range(training_parameter_space.shape[0])])
 # compute the covariance matrices and their cholesky decomposition
-cov_mats_train = np.stack([computations.compute() for computations in tmp_array])
+cov_mats_train = np.array([computations.compute() for computations in tmp_array])
 
 # delete tmp_array before next use
 del tmp_array
 
-
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 # send computations to the scheduler
-tmp_array = np.stack([dask.delayed(some_file_1.Spatial.compute_covariance)
+tmp_array = np.array([dask.delayed(some_file_1.Spatial.compute_covariance)
                       (covariance_type="matern", distance_matrix=spatial_distance,
                        variance=1.0, smoothness=1.0,
                        spatial_range=training_parameter_space[i, 1],
                        nugget=np.exp(training_parameter_space[i, 0])).persist()
                       for i in range(testing_parameter_space.shape[0])])
 # compute the covariance matrices and their cholesky decomposition
-cov_mats_test = np.stack([computations.compute() for computations in tmp_array])
+cov_mats_test = np.array([computations.compute() for computations in tmp_array])
 
 # delete tmp_array before next use
 del tmp_array
+
+# GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
+tmp_array = np.array(
+    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
+     for i in range(testing_parameter_space.shape[0])])
+observations_test = np.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
+semi_variogram_test = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
+                                                                          observations_test[i, :].reshape(256, 1),
+                                                                          realizations=1, bins=10).ravel() for i in
+                                range(training_parameter_space.shape[0])])
+
+# delete tmp_array before next use
+del tmp_array
+
+# GENERATE OBSERVATIONS FOR TESTING FOR THIRTY REALIZATIONS
+observations_test_30 = np.empty([testing_parameter_space.shape[0], 16, 16, 30])
+semi_variogram_test_30 = np.empty([testing_parameter_space.shape[0], 10, 30])
+tmp_array = np.array(
+    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
+     for i in range(testing_parameter_space.shape[0]) for j in range(30)])
+tmp1 = np.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * testing_parameter_space.shape[0])])
+tmp2 = np.array(
+    [some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
+     range(30 * testing_parameter_space.shape[0])])
+
+for i in range(training_parameter_space.shape[0]):
+    for j in range(30):
+        observations_test_30[i, :, :, j] = tmp1[j, :]
+        semi_variogram_test_30[i, :, j] = tmp2[:, j]
+
+# delete temp arrays before next use
+    del tmp1
+    del tmp2
+    del tmp_array
 
 
 def negative_log_likelihood(variance, spatial_range, smoothness, nugget,
@@ -142,28 +175,18 @@ model_NV30.compile(optimizer=tf.optimizers.Adam(),
 
 for i in range(n_epochs):
 
+    # print start of epoch
+    print(f"starting epoch {i}")
+
     # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
-    tmp_array = np.stack(
+    tmp_array = np.array(
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
          for i in range(training_parameter_space.shape[0])])
-    observations_train = np.stack([computations.compute().reshape(16, 16, 1) for computations in tmp_array], 0)
-    semi_variogram_train = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid,
+    observations_train = np.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
+    semi_variogram_train = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                                observations_train[i, :].reshape(256, 1),
                                                                                realizations=1, bins=10).ravel() for i in
-                                     range(training_parameter_space.shape[0])], 0)
-
-    # delete tmp_array before next use
-    del tmp_array
-
-    # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
-    tmp_array = np.stack(
-        [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
-         for i in range(testing_parameter_space.shape[0])])
-    observations_test = np.stack([computations.compute().reshape(16, 16, 1) for computations in tmp_array], 0)
-    semi_variogram_test = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid,
-                                                                              observations_train[i, :].reshape(256, 1),
-                                                                              realizations=1, bins=10).ravel() for i in
-                                    range(training_parameter_space.shape[0])], 0)
+                                     range(training_parameter_space.shape[0])])
 
     # delete tmp_array before next use
     del tmp_array
@@ -171,12 +194,12 @@ for i in range(n_epochs):
     # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
     observations_train_30 = np.empty([training_parameter_space.shape[0], 16, 16, 30])
     semi_variogram_train_30 = np.empty([training_parameter_space.shape[0], 10, 30])
-    tmp_array = np.stack(
+    tmp_array = np.array(
         [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
-         for i in range(training_parameter_space.shape[0]) for j in range(30)], 0)
-    tmp1 = np.stack([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])], 0)
-    tmp2 = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
-                     range(30 * training_parameter_space.shape[0])], 1)
+         for i in range(training_parameter_space.shape[0]) for j in range(30)])
+    tmp1 = np.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])])
+    tmp2 = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
+                     range(30 * training_parameter_space.shape[0])])
 
     for i in range(training_parameter_space.shape[0]):
         for j in range(30):
@@ -187,21 +210,6 @@ for i in range(n_epochs):
     del tmp1
     del tmp2
     del tmp_array
-
-    # GENERATE OBSERVATIONS FOR TESTING FOR THIRTY REALIZATIONS
-    observations_test_30 = np.empty([testing_parameter_space.shape[0], 16, 16, 30])
-    semi_variogram_test_30 = np.empty([testing_parameter_space.shape[0], 10, 30])
-    tmp_array = np.stack(
-        [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
-         for i in range(testing_parameter_space.shape[0]) for j in range(30)], 0)
-    tmp1 = np.stack([tmp_array[i].compute().reshape(16, 16) for i in range(30 * testing_parameter_space.shape[0])], 0)
-    tmp2 = np.stack([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1), 1).ravel() for i in
-                     range(30 * testing_parameter_space.shape[0])], 1)
-
-    for i in range(training_parameter_space.shape[0]):
-        for j in range(30):
-            observations_train_30[i, :, :, j] = tmp1[j, :]
-            semi_variogram_train_30[i, :, j] = tmp2[:, j]
 
     print(f"\n{observations_train.shape} and {training_parameter_space.shape}\n")
     history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
@@ -272,14 +280,14 @@ del tmp1
 del tmp2
 
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
-tmp_array = np.stack([dask.delayed(negative_log_likelihood)
+tmp_array = np.array([dask.delayed(negative_log_likelihood)
                       (variance=1.0, spatial_range=testing_parameter_space[j, 1],
                        smoothness=1.0, nugget=np.exp(testing_parameter_space[j, 0]),
                        covariance_mat=cov_mats_test[j, :, :],
                        observations=observations_test[i, :].reshape(256)).persist() for i in range(observations_test.shape[0])
-                      for j in range(testing_parameter_space.shape[0])], 0)
+                      for j in range(testing_parameter_space.shape[0])])
 for i in range(observations_test.shape[0]):
-    tmp1 = np.stack([tmp_array[j].compute() for j in range(i * testing_parameter_space.shape[0], (i + 1) * testing_parameter_space.shape[0])])
+    tmp1 = np.array([tmp_array[j].compute() for j in range(i * testing_parameter_space.shape[0], (i + 1) * testing_parameter_space.shape[0])])
     mle_estimates[i, 0] = testing_parameter_space[np.argmin(tmp1), 0]
     mle_estimates[i, 1] = testing_parameter_space[np.argmin(tmp1), 1]
 
@@ -299,20 +307,18 @@ tmp_array1 = np.empty([30, testing_parameter_space.shape[0]])
 tmp_array2 = np.empty([30, 2])
 
 for l in range(observations_test_30.shape[0]):
-    tmp1 = np.stack([dask.delayed(negative_log_likelihood)
+    tmp1 = np.array([dask.delayed(negative_log_likelihood)
                      (variance=1.0, spatial_range=testing_parameter_space[i, 1],
                       smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
                       covariance_mat=cov_mats_test[i, :, :],
                       observations=observations_test_30[l, :, :, j].reshape(256))
                      for i in range(testing_parameter_space.shape[0])
                      for j in range(30)])
-    tmp2 = np.stack([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
+    tmp2 = np.array([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
     # tmp3 gives point of interest for each realization
-    tmp3 = np.stack([np.argmin(tmp2[i * 30: (i + 1) * 30]) for i in range(testing_parameter_space.shape[0])])
-    # compute average for the point of interest
-    print(f"\n{tmp3}\n")
-    tmp4 = np.stack([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
-    print(f"\n{tmp4}\n")
+    tmp3 = np.array([np.argmin(tmp2[i * 30: (i + 1) * 30]) for i in range(testing_parameter_space.shape[0])])
+    # compute average for the point of interest for each realization
+    tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
