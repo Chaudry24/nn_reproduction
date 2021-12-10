@@ -90,11 +90,11 @@ class Spatial:
             # compute first three terms
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
             second_term = (distance_matrix / spatial_range) ** smoothness
-            third_term = kv(smoothness, distance_matrix.get() / spatial_range.get())
+            third_term = kv(smoothness, distance_matrix / spatial_range)
             # multiply to get matern covariance
             matern_covariance = first_term * second_term * third_term
             # replace inf and nan on the diagonals by the variance
-            matern_covariance = np.nan_to_num(matern_covariance.get(), copy=True,
+            matern_covariance = np.nan_to_num(matern_covariance, copy=True,
                                               posinf=variance, nan=variance)
             # compute eigen decomposition of matern matrix
             # TODO debug the code by printing eigen vals at each iteration

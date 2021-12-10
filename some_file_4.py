@@ -229,19 +229,19 @@ for i in range(n_epochs):
 
     print(f"fitting NF model for {i}th time")
     history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
-                              epochs=1000)
+                              epochs=1)
 
     print(f"fitting NF30 model for {i}th time")
     history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
-                                  epochs=1000)
+                                  epochs=1)
 
     print(f"fitting NV model for {i}th time")
     history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
-                              epochs=1000)
+                              epochs=1)
 
     print(f"fitting NV30 model for {i}th time")
     history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
-                                  epochs=1000)
+                                  epochs=1)
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])
