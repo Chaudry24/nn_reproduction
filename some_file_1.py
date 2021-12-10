@@ -164,7 +164,7 @@ class Spatial:
 
     @staticmethod
     def compute_semivariogram(coordinates, observations, realizations, bins=10):
-        print("\nstarting\n")
+        print("\ncomputing semivariogram\n")
         """Returns the empirical variogram given the coordinates and observations"""
         # initialize empty array to save semivariogram values
         variogram = np.empty((10, realizations))

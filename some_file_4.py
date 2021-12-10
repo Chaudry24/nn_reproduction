@@ -16,21 +16,21 @@ y = y.ravel()
 spatial_grid = np.array([x, y]).T
 
 # set number of epochs
-n_epochs = 100
+n_epochs = 1
 
 # COMPUTE DISTANCE MATRIX
 spatial_distance = cp.array(some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1]))
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = cp.array(np.load(file)[0:2, :])
+    training_parameter_space = cp.array(np.load(file))
 
 #print for debugging
 print(f"training_parameter space: {training_parameter_space}")
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 10
+    n_test_samples = 50
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
@@ -78,11 +78,7 @@ tmp_array = np.array(
     [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_test[i, :, :]).persist()
      for i in range(testing_parameter_space.shape[0])])
 observations_test = cp.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
-# for i in range(testing_parameter_space.shape[0]):
-#     print(f"spatial grid: {spatial_grid}")
-#     print(f"observation test .get {observations_test[i, :].reshape(256, 1).get()}")
-#     print(f"observation test {observations_test[i, :].reshape(256, 1)}")
-#     print(f"variogram {some_file_1.Spatial.compute_semivariogram(spatial_grid, observations_test[i, :].reshape(256, 1).get(), realizations = 1, bins = 10)}")
+
 semi_variogram_test = cp.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                           observations_test[i, :].reshape(256, 1).get(),
                                                                           realizations=1, bins=10).ravel() for i in
@@ -102,13 +98,10 @@ tmp2 = cp.array(
     [some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp1[i, :].reshape(256, -1).get(), 1).ravel() for i in
      range(30 * testing_parameter_space.shape[0])])
 
-print(f"\n{tmp2.shape}\n")
 for i in range(testing_parameter_space.shape[0]):
     for j in range(30):
         observations_test_30[i, :, :, j] = tmp1[j + 30 * i, :]
         semi_variogram_test_30[i, :, j] = tmp2[j + 30 * i, :]
-        print(f"test obs_30 for parameter {i} realization {j}: {tmp1[j, :]}")
-        # print(f"tmp1 array shape: {tmp1.shape}")
 
 
 # delete temp arrays before next use
@@ -238,27 +231,30 @@ for i in range(n_epochs):
     del tmp2
     del tmp_array
 
-    print(f"\n{observations_train.shape} and {training_parameter_space.shape}\n")
+    print(f"fitting NF model for {i}th time")
     history_NF = model_NF.fit(x=observations_train.get(), y=training_parameter_space.get(), batch_size=16,
-                              epochs=2)
+                              epochs=1000)
 
-    print(f"\n{observations_train_30.shape} and {training_parameter_space.shape}\n")
+    print(f"fitting NF30 model for {i}th time")
     history_NF30 = model_NF30.fit(x=observations_train_30.get(), y=training_parameter_space.get(), batch_size=16,
-                                  epochs=2)
+                                  epochs=1000)
 
-    print(f"\n{semi_variogram_train.shape} and {training_parameter_space.shape}\n")
+    print(f"fitting NV model for {i}th time")
     history_NV = model_NV.fit(x=semi_variogram_train.get(), y=training_parameter_space.get(), batch_size=16,
-                              epochs=2)
+                              epochs=1000)
 
-    print(f"\n{semi_variogram_train_30.shape} and {training_parameter_space.shape}\n")
+    print(f"fitting NV30 model for {i}th time")
     history_NV30 = model_NV30.fit(x=semi_variogram_train_30.get(), y=training_parameter_space.get(), batch_size=16,
-                                  epochs=2)
+                                  epochs=1000)
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])
     loss_NF30.append(history_NF30.history["loss"])
     loss_NV30.append(history_NV.history["loss"])
     loss_NV30.append(history_NV30.history["loss"])
+
+    # print end of epoch
+    print(f"ending epoch {i}")
 
 # ------- SAVE TRAINING LOSS FOR EACH NN ------- #
 
@@ -351,9 +347,6 @@ for l in range(observations_test_30.shape[0]):
                      for j in range(30)])
     # compute MLE
     tmp2 = cp.array([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
-    print(f"tmp2 for sample {l}: {tmp2}")
-    # tmp3 gives the index of point of interest for each realization
-    # tmp3 = cp.array([tmp2[i, k] for k in range(30) for i in range(0, testing_parameter_space.shape[0], 30 + k)])
     tmp_list = []
     tmp_list2 = []
     for i in range(30):
@@ -362,54 +355,16 @@ for l in range(observations_test_30.shape[0]):
             tmp_list.append(i + j * 30)
         # get MLE estimates for the above parameters
         tmp3 = tmp2[tmp_list].get()
-        # print tmp_list for debugging
-        print(f"tmp_list: {tmp_list}")
-        # print tmp3 for debugging
-        print(f"tmp3: {tmp3}")
         # empty out the tmp_list
         tmp_list = []
         # save the index of the minimum parameter for i-th realization
         tmp_list2.append(np.argmin(tmp3))
-        # print tmp_list2 for debugging
-        print(f"tmp_list2: {tmp_list2}")
-    # # find index of minimum parameter for each realization
-    # for k in range(30):
-    #     tmp_list2.append(np.argmin(tmp2[k: (k + 1)]))
-    # tmp3 = cp.array([cp.argmin(tmp2[i + j]) for i in range(testing_parameter_space.shape[0]) for j in range(30)])
     # store parameter values at the point of interest for each realization
     tmp4 = testing_parameter_space[tmp_list2, :].get()
     # tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
-    print(f"tmp4: {tmp4}")
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
-    print(f"mle_estimates_30 for sample {l}: {mle_estimates_30[l, :]}")
-    print(f"the true parameters for sample {l} are: {testing_parameter_space[l, :]}")
-
-# for loop for each sample
-# for l in range(observations_test_30.shape[0]):
-#     # for loop to save min parameters for each realization
-#     for k in range(30):
-#         # for loop for each parameter value
-#         for i in range(testing_parameter_space.shape[0]):
-#             # for loop for each realization
-#             for j in range(30):
-#                 print(f"\nStarting MLE for {l}th sample {j}th realization using {i}th parameters\n")
-#                 tmp_array1[j, i] = negative_log_likelihood(variance=1.0, spatial_range=testing_parameter_space[i, 1],
-#                                                            smoothness=1.0, nugget=np.exp(testing_parameter_space[i, 0]),
-#                                                            covariance_mat=cov_mats_test[i, :, :],
-#                                                            observations=observations_test_30[l, :, :, j].reshape(256))
-#                 print(f"\nThe MLE for {l}th sample {j}th realization using {i}th parameters is {tmp_array1[j, i]}\n")
-#                 print(f"\nEnded MLE for {l}th sample {j}th realization using {i}th parameters\n")
-#         print(f"\nFinding average maximum estimates for the {k}th realization\n")
-#         point_of_interest = np.argmin(tmp_array1[k, :])
-#         tmp_array2[k, 0] = testing_parameter_space[point_of_interest, 0]
-#         tmp_array2[k, 1] = testing_parameter_space[point_of_interest, 1]
-#         print(f"\nFound average maximum estimates for the {k}th realization\n")
-#     print(f"\nSaving average maximum estimates for the {l}th sample\n")
-#     mle_estimates_30[l, 0] = np.average(tmp_array2[:, 0])
-#     mle_estimates_30[l, 1] = np.average(tmp_array2[:, 1])
-#     print(f"\nSaved average maximum estimates for the {l}th sample\n")
 
 # ------- SAVE MLE PRED FOR THIRTY REALIZATIONS ------- #
 
