@@ -351,20 +351,19 @@ for l in range(observations_test_30.shape[0]):
     # tmp3 = cp.array([tmp2[i, k] for k in range(30) for i in range(0, testing_parameter_space.shape[0], 30 + k)])
     tmp_list = []
     tmp_list2 = []
-    print(f"testing parameter space shape: {testing_parameter_space.shape}")
-    for i in range(testing_parameter_space.shape[0]):
+    for i in range(30):
         for j in range(testing_parameter_space.shape[0]):
-            # save MLE estimate indices for parameter i and realization j
+            # save MLE estimate indices for parameter j and realization i
             tmp_list.append(i + j * 30)
         # get MLE estimates for the above parameters
-        tmp3 = np.array(tmp2[tmp_list].get())
+        tmp3 = tmp2[tmp_list].get()
         # print tmp_list for debugging
         print(f"tmp_list: {tmp_list}")
         # print tmp3 for debugging
         print(f"tmp3: {tmp3}")
         # empty out the tmp_list
         tmp_list = []
-        # save the index of the minimum parameter for current realization
+        # save the index of the minimum parameter for i-th realization
         tmp_list2.append(np.argmin(tmp3))
         # print tmp_list2 for debugging
         print(f"tmp_list2: {tmp_list2}")
@@ -376,9 +375,10 @@ for l in range(observations_test_30.shape[0]):
     tmp4 = testing_parameter_space[tmp_list2, :].get()
     # tmp4 = np.array([testing_parameter_space[np.argmin(tmp3[i]), :] for i in range(testing_parameter_space.shape[0])])
     # save the averages
-    print(tmp4)
+    print(f"tmp4: {tmp4}")
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
+    print(f"mle_estimates_30[l, :]: {mle_estimates_30[l, :]}")
 
 # for loop for each sample
 # for l in range(observations_test_30.shape[0]):
