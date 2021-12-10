@@ -99,12 +99,10 @@ tmp2 = cp.array(
 print(f"\n{tmp2.shape}\n")
 for i in range(testing_parameter_space.shape[0]):
     for j in range(30):
-        print(tmp2[j + 30 * i, :])
-        print(tmp2[j + 30 * i, :].shape)
-        observations_test_30[i, :, :, j] = tmp1[j, :]
+        observations_test_30[i, :, :, j] = tmp1[j + 30 * i, :]
         semi_variogram_test_30[i, :, j] = tmp2[j + 30 * i, :]
         print(f"test obs_30 for parameter {i} realization {j}: {tmp1[j, :]}")
-        print(f"tmp1 array shape: {tmp1.shape}")
+        # print(f"tmp1 array shape: {tmp1.shape}")
 
 
 # delete temp arrays before next use
@@ -226,9 +224,7 @@ for i in range(n_epochs):
 
     for i in range(training_parameter_space.shape[0]):
         for j in range(30):
-            print(tmp2[j + 30 * i, :])
-            print(tmp2[j + 30 * i, :].shape)
-            observations_train_30[i, :, :, j] = tmp1[j, :]
+            observations_train_30[i, :, :, j] = tmp1[j + 30 * i, :]
             semi_variogram_train_30[i, :, j] = tmp2[j + 30 * i, :]
 
     # delete temp arrays before next use
