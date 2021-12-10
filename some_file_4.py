@@ -23,14 +23,20 @@ spatial_distance = cp.array(some_file_1.Spatial.compute_distance(spatial_grid[:,
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = cp.array(np.load(file)[0:5, :])
+    training_parameter_space = cp.array(np.load(file)[0:2, :])
+
+#print for debugging
+print(f"training_parameter space: {training_parameter_space}")
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 3
+    n_test_samples = 10
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
+
+# print for debugging
+print(f"testing_parameter space: {testing_parameter_space}")
 
 # SAVE TESTING PARAMETER SUBSET
 with open("npy/test_subset.npy", mode="wb") as file:
