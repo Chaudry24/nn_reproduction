@@ -1,7 +1,7 @@
 import matplotlib.colors
 import numpy as np
 import numpy
-# import cupy as cp
+import cupy as cp
 import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
@@ -87,6 +87,7 @@ class Spatial:
                            n_points=256):
         """Computes the covariance matrix given the distance and covariance_type"""
         if covariance_type == 'matern':
+            # convert everything into a cupy array
             # compute first three terms
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
             second_term = (distance_matrix / spatial_range) ** smoothness
