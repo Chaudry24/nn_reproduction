@@ -378,7 +378,8 @@ for l in range(observations_test_30.shape[0]):
     print(f"tmp4: {tmp4}")
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
-    print(f"mle_estimates_30 for sample l: {mle_estimates_30[l, :]}")
+    print(f"mle_estimates_30 for sample {l}: {mle_estimates_30[l, :]}")
+    print(f"the true parameters for sample {l} are: {testing_parameter_space[l, :]}")
 
 # for loop for each sample
 # for l in range(observations_test_30.shape[0]):
