@@ -22,14 +22,14 @@ spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spat
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = np.load(file)[0: 2, :]
+    training_parameter_space = np.load(file)
 
 # print for debugging
 print(f"training parameters loaded")
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 3
+    n_test_samples = 50
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
@@ -225,22 +225,22 @@ for i in range(n_epochs):
     print(f"fitting NF model for {i}th time")
     history_NF = model_NF.fit(x=tf.convert_to_tensor(observations_train),
                               y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                              epochs=1)
+                              epochs=1000)
 
     print(f"fitting NF30 model for {i}th time")
     history_NF30 = model_NF30.fit(x=tf.convert_to_tensor(observations_train_30),
                                   y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                                  epochs=1)
+                                  epochs=1000)
 
     print(f"fitting NV model for {i}th time")
     history_NV = model_NV.fit(x=tf.convert_to_tensor(semi_variogram_train),
                               y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                              epochs=1)
+                              epochs=1000)
 
     print(f"fitting NV30 model for {i}th time")
     history_NV30 = model_NV30.fit(x=tf.convert_to_tensor(semi_variogram_train_30),
                                   y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                                  epochs=1)
+                                  epochs=1000)
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])
