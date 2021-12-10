@@ -347,6 +347,7 @@ for l in range(observations_test_30.shape[0]):
                      for j in range(30)])
     # compute MLE
     tmp2 = cp.array([tmp1[i].compute() for i in range(30 * testing_parameter_space.shape[0])])
+    print(f"tmp2 for sample {l}: {tmp2}")
     # tmp3 gives the index of point of interest for each realization
     # tmp3 = cp.array([tmp2[i, k] for k in range(30) for i in range(0, testing_parameter_space.shape[0], 30 + k)])
     tmp_list = []
