@@ -23,11 +23,11 @@ spatial_distance = cp.array(some_file_1.Spatial.compute_distance(spatial_grid[:,
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = cp.array(np.load(file)[0:10, :])
+    training_parameter_space = cp.array(np.load(file)[0:5, :])
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 5
+    n_test_samples = 3
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
@@ -104,6 +104,7 @@ for i in range(testing_parameter_space.shape[0]):
         observations_test_30[i, :, :, j] = tmp1[j, :]
         semi_variogram_test_30[i, :, j] = tmp2[j + 30 * i, :]
         print(f"test obs_30 for parameter {i} realization {j}: {tmp1[j, :]}")
+        print(f"tmp1 array shape: {tmp1.shape}")
 
 
 # delete temp arrays before next use
