@@ -23,11 +23,11 @@ spatial_distance = cp.array(some_file_1.Spatial.compute_distance(spatial_grid[:,
 
 # LOAD PARAMETER SPACE FOR TRAINING
 with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = cp.array(np.load(file)[0:3, :])
+    training_parameter_space = cp.array(np.load(file)[0:10, :])
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
-    n_test_samples = 2
+    n_test_samples = 5
     testing_parameter_space = np.load(file)
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
@@ -378,7 +378,7 @@ for l in range(observations_test_30.shape[0]):
     print(f"tmp4: {tmp4}")
     mle_estimates_30[l, 0] = np.average(tmp4[:, 0])
     mle_estimates_30[l, 1] = np.average(tmp4[:, 1])
-    print(f"mle_estimates_30[l, :]: {mle_estimates_30[l, :]}")
+    print(f"mle_estimates_30 for sample l: {mle_estimates_30[l, :]}")
 
 # for loop for each sample
 # for l in range(observations_test_30.shape[0]):
