@@ -1,7 +1,7 @@
 import matplotlib.colors
 import numpy as np
 import numpy
-import cupy as cp
+# import cupy as cp
 import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
@@ -90,12 +90,12 @@ class Spatial:
             # compute first three terms
             first_term = variance / (2 ** (smoothness - 1) * gamma(smoothness))
             second_term = (distance_matrix / spatial_range) ** smoothness
-            third_term = cp.array(kv(smoothness, distance_matrix.get() / spatial_range.get()))  # convert distance matrix to numpy array
+            third_term = kv(smoothness, distance_matrix.get() / spatial_range.get())
             # multiply to get matern covariance
             matern_covariance = first_term * second_term * third_term
             # replace inf and nan on the diagonals by the variance
-            matern_covariance = cp.array(np.nan_to_num(matern_covariance.get(), copy=True,  # convert to numpy then back to cupy
-                                                       posinf=variance, nan=variance))
+            matern_covariance = np.nan_to_num(matern_covariance.get(), copy=True,
+                                              posinf=variance, nan=variance)
             # compute eigen decomposition of matern matrix
             # TODO debug the code by printing eigen vals at each iteration
             # TODO fix the code by manually making it positive definite
@@ -103,13 +103,13 @@ class Spatial:
             # print(f"\nThe smallest eigenvalue is: {smallest_eigenval}\n")
             # add nugget if it is present
             if nugget > 0:
-                matern_covariance += nugget * cp.eye(n_points)
+                matern_covariance += nugget * np.eye(n_points)
             # smallest_eigenval2 = np.min(np.linalg.eigvals(matern_covariance))
             # print(f"\nThe smallest eigenvalue is: {smallest_eigenval2}\n")
             # # add a small perturbation/nugget effect for numerical stability
             # # matern_covariance += 1e-3 * np.eye(n_points)
             # compute eigenvals and force to rerun if val <= 0
-            if min(cp.linalg.eigvalsh(matern_covariance)) <= 0:
+            if min(np.linalg.eigvals(matern_covariance)) <= 0:
                 # this forces error and reruns the function
                 print("matrix is not positive definite. Rerunning function")
                 raise numpy.linalg.LinAlgError("Matrix is not positive definite")
@@ -122,21 +122,21 @@ class Spatial:
         """Returns observations from a GP with a given covariance"""
         if realizations == 1:
             # generate iid normal vector
-            iid_data = cp.random.randn(n_points, 1)
+            iid_data = np.random.randn(n_points, 1)
             # compute lower cholesky of the covariance matrix
-            lower_cholesky = cp.linalg.cholesky(covariance)
+            lower_cholesky = np.linalg.cholesky(covariance)
             # multiply the iid data by lower cholesky to get correlated data
             observed_data = lower_cholesky @ iid_data
             return observed_data.reshape(n_points, 1)
         elif realizations > 1:
             # initialize memory for observed data
-            observed_data = cp.empty((n_points, realizations))
+            observed_data = np.empty((n_points, realizations))
             # compute lower cholesky of the covariance matrix
-            lower_cholesky = cp.linalg.cholesky(covariance)
+            lower_cholesky = np.linalg.cholesky(covariance)
             # TODO: parallelize this loop
             for i in range(realizations):
                 # generate iid normal vector
-                iid_data = cp.random.randn(n_points)
+                iid_data = np.random.randn(n_points)
                 # save each realization of correlated vector by multiplying to lower cholesky
                 observed_data[:, i] = lower_cholesky @ iid_data
             return observed_data
