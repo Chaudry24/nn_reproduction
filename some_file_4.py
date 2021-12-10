@@ -64,8 +64,8 @@ del tmp_array
 tmp_array = np.array([dask.delayed(some_file_1.Spatial.compute_covariance)
                       (covariance_type="matern", distance_matrix=spatial_distance,
                        variance=1.0, smoothness=1.0,
-                       spatial_range=training_parameter_space[i, 1],
-                       nugget=np.exp(training_parameter_space[i, 0])).persist()
+                       spatial_range=testing_parameter_space[i, 1],
+                       nugget=np.exp(testing_parameter_space[i, 0])).persist()
                       for i in range(testing_parameter_space.shape[0])])
 # compute the covariance matrices
 cov_mats_test = cp.array([computations.compute() for computations in tmp_array])
