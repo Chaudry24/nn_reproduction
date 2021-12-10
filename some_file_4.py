@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import some_file_1
-import dask
+# import dask
 # import dask.distributed
 # import graphviz
 # import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ y = y.ravel()
 spatial_grid = np.array([x, y]).T
 
 # set number of epochs
-n_epochs = 1
+n_epochs = 100
 
 # COMPUTE DISTANCE MATRIX
 spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
@@ -189,58 +189,61 @@ for i in range(n_epochs):
     # print start of epoch
     print(f"starting epoch {i}")
 
-    # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
-    observations_train = np.array(
-        [some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[i, :, :]).reshape(16, 16, 1)
-         for i in range(training_parameter_space.shape[0])])
-    # observations_train = np.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
-    semi_variogram_train = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
+    # generate data at every 5th iteration
+    if i % 5 == 0:
+        print(f"generating data for {i}th time (mod 5)")
+        # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
+        observations_train = np.array(
+            [some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[i, :, :]).reshape(16, 16, 1)
+             for i in range(training_parameter_space.shape[0])])
+        # observations_train = np.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
+        semi_variogram_train = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
                                                                                observations_train[i, :].reshape(256, 1),
                                                                                realizations=1, bins=10).ravel() for i in
-                                     range(training_parameter_space.shape[0])])
+                                         range(training_parameter_space.shape[0])])
 
     # delete tmp_array before next use
     # del tmp_array
 
-    # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
-    observations_train_30 = np.empty([training_parameter_space.shape[0], 16, 16, 30])
-    semi_variogram_train_30 = np.empty([training_parameter_space.shape[0], 10, 30])
-    tmp_array = np.array(
-        [some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[i, :, :]).reshape(16, 16)
-         for i in range(training_parameter_space.shape[0]) for j in range(30)])
-    # tmp1 = np.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])])
-    tmp2 = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array[i, :].reshape(256, -1), 1).ravel() for i in
-                     range(30 * training_parameter_space.shape[0])])
+        # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
+        observations_train_30 = np.empty([training_parameter_space.shape[0], 16, 16, 30])
+        semi_variogram_train_30 = np.empty([training_parameter_space.shape[0], 10, 30])
+        tmp_array = np.array(
+            [some_file_1.Spatial.observations(realizations=1, covariance=cov_mats_train[i, :, :]).reshape(16, 16)
+            for i in range(training_parameter_space.shape[0]) for j in range(30)])
+        # tmp1 = np.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * training_parameter_space.shape[0])])
+        tmp2 = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid, tmp_array[i, :].reshape(256, -1), 1).ravel() for i in
+                        range(30 * training_parameter_space.shape[0])])
 
-    for i in range(training_parameter_space.shape[0]):
-        for j in range(30):
-            observations_train_30[i, :, :, j] = tmp_array[j + 30 * i, :]
-            semi_variogram_train_30[i, :, j] = tmp2[j + 30 * i, :]
+        for i in range(training_parameter_space.shape[0]):
+            for j in range(30):
+                observations_train_30[i, :, :, j] = tmp_array[j + 30 * i, :]
+                semi_variogram_train_30[i, :, j] = tmp2[j + 30 * i, :]
 
     # delete temp arrays before next use
     # del tmp1
-    del tmp2
-    del tmp_array
+    # del tmp2
+    # del tmp_array
 
     print(f"fitting NF model for {i}th time")
     history_NF = model_NF.fit(x=tf.convert_to_tensor(observations_train),
                               y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                              epochs=1000)
+                              epochs=3)
 
     print(f"fitting NF30 model for {i}th time")
     history_NF30 = model_NF30.fit(x=tf.convert_to_tensor(observations_train_30),
                                   y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                                  epochs=1000)
+                                  epochs=3)
 
     print(f"fitting NV model for {i}th time")
     history_NV = model_NV.fit(x=tf.convert_to_tensor(semi_variogram_train),
                               y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                              epochs=1000)
+                              epochs=3)
 
     print(f"fitting NV30 model for {i}th time")
     history_NV30 = model_NV30.fit(x=tf.convert_to_tensor(semi_variogram_train_30),
                                   y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                                  epochs=1000)
+                                  epochs=3)
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])

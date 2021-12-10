@@ -1,7 +1,7 @@
 import matplotlib.colors
 import numpy as np
 import numpy
-import cupy as cp
+# import cupy as cp
 import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
