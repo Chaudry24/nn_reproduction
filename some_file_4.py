@@ -228,19 +228,23 @@ for i in range(n_epochs):
     del tmp_array
 
     print(f"fitting NF model for {i}th time")
-    history_NF = model_NF.fit(x=observations_train, y=training_parameter_space, batch_size=16,
+    history_NF = model_NF.fit(x=tf.convert_to_tensor(observations_train),
+                              y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
                               epochs=1)
 
     print(f"fitting NF30 model for {i}th time")
-    history_NF30 = model_NF30.fit(x=observations_train_30, y=training_parameter_space, batch_size=16,
+    history_NF30 = model_NF30.fit(x=tf.convert_to_tensor(observations_train_30),
+                                  y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
                                   epochs=1)
 
     print(f"fitting NV model for {i}th time")
-    history_NV = model_NV.fit(x=semi_variogram_train, y=training_parameter_space, batch_size=16,
+    history_NV = model_NV.fit(x=tf.convert_to_tensor(semi_variogram_train),
+                              y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
                               epochs=1)
 
     print(f"fitting NV30 model for {i}th time")
-    history_NV30 = model_NV30.fit(x=semi_variogram_train_30, y=training_parameter_space, batch_size=16,
+    history_NV30 = model_NV30.fit(x=tf.convert_to_tensor(semi_variogram_train_30),
+                                  y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
                                   epochs=1)
 
     # store losses for each "epoch"
@@ -273,13 +277,13 @@ with open("./tf_stat_reproduction/NV30/training_loss_NV30.npy", mode="wb") as fi
 
 # ------- GET PREDICTIONS FOR EACH NN ------- #
 
-preds_NF = model_NF.predict(x=observations_test)
+preds_NF = model_NF.predict(x=tf.convert_to_tensor(observations_test))
 
-preds_NF30 = model_NF30.predict(x=observations_test_30)
+preds_NF30 = model_NF30.predict(x=tf.convert_to_tensor(observations_test_30))
 
-preds_NV = model_NV.predict(x=semi_variogram_test)
+preds_NV = model_NV.predict(x=tf.convert_to_tensor(semi_variogram_test))
 
-preds_NV30 = model_NV30.predict(x=semi_variogram_test_30)
+preds_NV30 = model_NV30.predict(x=tf.convert_to_tensor(semi_variogram_test_30))
 
 # ------- SAVE PREDICTIONS FOR EACH NN ------- #
 
