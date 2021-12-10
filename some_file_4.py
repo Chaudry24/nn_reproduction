@@ -103,6 +103,7 @@ for i in range(testing_parameter_space.shape[0]):
         print(tmp2[j + 30 * i, :].shape)
         observations_test_30[i, :, :, j] = tmp1[j, :]
         semi_variogram_test_30[i, :, j] = tmp2[j + 30 * i, :]
+        print(f"test obs_30 for parameter {i} realization {j}: {tmp1[j, :]}")
 
 
 # delete temp arrays before next use
