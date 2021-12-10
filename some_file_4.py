@@ -75,7 +75,7 @@ del tmp_array
 
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
 tmp_array = np.array(
-    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
+    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_test[i, :, :]).persist()
      for i in range(testing_parameter_space.shape[0])])
 observations_test = cp.array([computations.compute().reshape(16, 16, 1) for computations in tmp_array])
 # for i in range(testing_parameter_space.shape[0]):
@@ -95,7 +95,7 @@ del tmp_array
 observations_test_30 = cp.empty([testing_parameter_space.shape[0], 16, 16, 30])
 semi_variogram_test_30 = cp.empty([testing_parameter_space.shape[0], 10, 30])
 tmp_array = np.array(
-    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_train[i, :, :]).persist()
+    [dask.delayed(some_file_1.Spatial.observations)(realizations=1, covariance=cov_mats_test[i, :, :]).persist()
      for i in range(testing_parameter_space.shape[0]) for j in range(30)])
 tmp1 = cp.array([tmp_array[i].compute().reshape(16, 16) for i in range(30 * testing_parameter_space.shape[0])])
 tmp2 = cp.array(
