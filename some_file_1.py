@@ -164,7 +164,7 @@ class Spatial:
                 plt.scatter(x=x_coord, y=y_coord, cmap="PuRd", norm=normalize, c=colors)
 
     @staticmethod
-    def compute_semivariogram(coordinates, observations, realizations, bins=10):
+    def compute_semivariogram(coordinates, observations, realizations=1, bins=10):
         print("\ncomputing semivariogram\n")
         """Returns the empirical variogram given the coordinates and observations"""
         # initialize empty array to save semivariogram values
