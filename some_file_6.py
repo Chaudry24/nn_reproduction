@@ -31,7 +31,7 @@ with open("npy/training_my_idea.npy", mode="wb") as file:
     np.save(file, training_parameter_space)
 
 # GENERATE PARAMETER SPACE FOR TESTING
-n_test = 500
+n_test = 100
 testing_log_nugget_dom = (-8.90021914537373, 0.5544872141687432)
 testing_spatial_range_dom = (2.0, 25.0)
 testing_log_nugget_vals = np.random.uniform(testing_log_nugget_dom[0], testing_log_nugget_dom[1], n_test)
