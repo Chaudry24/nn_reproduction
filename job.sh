@@ -9,4 +9,4 @@
 #SBATCH --mail-user=machaudry@uh.edu
 #SBATCH --mail-type=END
 
-/project/jun/machaudr/miniconda3.9/envs/myenv/bin/python -u some_file_4.py
+/project/jun/machaudr/miniconda3.9/envs/myenv/bin/python -u some_file_6.py
