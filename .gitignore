@@ -3,5 +3,5 @@ mle_nn.*
 __pycache__
 *.ipynb_checkpoints
 *.o*
-cov_mats*
-chol_mats*
+cov_mats_t*
+chol_mats_t*
