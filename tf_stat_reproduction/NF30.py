@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import some_file_1
 
 # SPATIAL GRID
 x = np.linspace(1, 16, 16)
@@ -9,16 +10,31 @@ x = x.ravel()
 y = y.ravel()
 spatial_grid = np.array([x, y]).T
 
+# COMPUTE DISTANCE MATRIX
+spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
+
 # set number of epochs
 n_epochs = 1000
 
-# open train cholesky matrices
-with open("../npy/chol_mats_train_tf_stat.npy", mode="rb") as file:
-    chol_mats_train = np.load(file)
+# # open train cholesky matrices
+# with open("../npy/chol_mats_train_tf_stat.npy", mode="rb") as file:
+#     chol_mats_train = np.load(file)
 
 # open parameter space for training
 with open("../npy/training_201_200_y.npy", mode="rb") as file:
     training_parameter_space = np.load(file)
+
+# GENERATE COVARIANCE MATRICES FOR TRAINING SET
+# compute the covariance matrices
+cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
+                           (covariance_type="matern", distance_matrix=spatial_distance,
+                            variance=1.0, smoothness=1.0,
+                            spatial_range=training_parameter_space[i, 1],
+                            nugget=np.exp(training_parameter_space[i, 0]))
+                           for i in range(training_parameter_space.shape[0])])
+
+# compute cholesky matrices for training
+chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
 # open test data
 with open("../npy/test30_tf_stat.npy", mode="rb") as file:

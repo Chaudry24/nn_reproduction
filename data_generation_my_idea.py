@@ -33,16 +33,16 @@ with open("npy/test_subset_my_idea.npy", mode="wb") as file:
     np.save(file, testing_parameter_space)
 
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
-# compute the covariance matrices
-cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
-                          (covariance_type="matern", distance_matrix=spatial_distance,
-                           variance=1.0, smoothness=1.0,
-                           spatial_range=training_parameter_space[i, 1],
-                           nugget=np.exp(training_parameter_space[i, 0]))
-                          for i in range(training_parameter_space.shape[0])])
-
-# compute cholesky matrices for training
-chol_mats_train = np.linalg.cholesky(cov_mats_train)
+# # compute the covariance matrices
+# cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
+#                           (covariance_type="matern", distance_matrix=spatial_distance,
+#                            variance=1.0, smoothness=1.0,
+#                            spatial_range=training_parameter_space[i, 1],
+#                            nugget=np.exp(training_parameter_space[i, 0]))
+#                           for i in range(training_parameter_space.shape[0])])
+#
+# # compute cholesky matrices for training
+# chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 # compute the covariance matrices
@@ -69,11 +69,11 @@ semi_variogram_test_30 = np.array([some_file_1.Spatial.compute_semivariogram(spa
                                    for i in range(testing_parameter_space.shape[0])
                                    for j in range(30)]).reshape(testing_parameter_space.shape[0], -1)
 
-# save train covariance matrices and train cholesky matrices
-with open("npy/cov_mats_train_my_idea.npy", mode="wb") as file:
-    np.save(file, cov_mats_train)
-with open("npy/chol_mats_train_my_idea.npy", mode="wb") as file:
-    np.save(file, chol_mats_train)
+# # save train covariance matrices and train cholesky matrices
+# with open("npy/cov_mats_train_my_idea.npy", mode="wb") as file:
+#     np.save(file, cov_mats_train)
+# with open("npy/chol_mats_train_my_idea.npy", mode="wb") as file:
+#     np.save(file, chol_mats_train)
 
 # save test covariance matrices and test cholesky matrices
 with open("npy/cov_mats_test_my_idea.npy", mode="wb") as file:

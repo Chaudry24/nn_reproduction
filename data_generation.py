@@ -12,12 +12,12 @@ spatial_grid = np.array([x, y]).T
 # COMPUTE DISTANCE MATRIX
 spatial_distance = some_file_1.Spatial.compute_distance(spatial_grid[:, 0], spatial_grid[:, 1])
 
-# LOAD PARAMETER SPACE FOR TRAINING
-with open("npy/training_201_200_y.npy", mode="rb") as file:
-    training_parameter_space = np.load(file)
+# # LOAD PARAMETER SPACE FOR TRAINING
+# with open("npy/training_201_200_y.npy", mode="rb") as file:
+#     training_parameter_space = np.load(file)
 
 # print as a progress update
-print("training parameters loaded")
+# print("training parameters loaded")
 
 # LOAD PARAMETER SPACE FOR TESTING
 with open("npy/test_y.npy", mode="rb") as file:
@@ -35,15 +35,15 @@ print("testing parameters loaded")
 
 # GENERATE COVARIANCE MATRICES FOR TRAINING SET
 # compute the covariance matrices
-cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
-                           (covariance_type="matern", distance_matrix=spatial_distance,
-                            variance=1.0, smoothness=1.0,
-                            spatial_range=training_parameter_space[i, 1],
-                            nugget=np.exp(training_parameter_space[i, 0]))
-                           for i in range(training_parameter_space.shape[0])])
-
-# compute cholesky matrices for training
-chol_mats_train = np.linalg.cholesky(cov_mats_train)
+# cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
+#                            (covariance_type="matern", distance_matrix=spatial_distance,
+#                             variance=1.0, smoothness=1.0,
+#                             spatial_range=training_parameter_space[i, 1],
+#                             nugget=np.exp(training_parameter_space[i, 0]))
+#                            for i in range(training_parameter_space.shape[0])])
+#
+# # compute cholesky matrices for training
+# chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 # compute the covariance matrices
@@ -72,10 +72,10 @@ semi_variogram_test_30 = np.array([some_file_1.Spatial.compute_semivariogram(spa
                                    for j in range(30)]).reshape(testing_parameter_space.shape[0], -1)
 
 # save train covariance matrices and train cholesky matrices
-with open("npy/cov_mats_train_tf_stat.npy", mode="wb") as file:
-    np.save(file, cov_mats_train)
-with open("npy/chol_mats_train_tf_stat.npy", mode="wb") as file:
-    np.save(file, chol_mats_train)
+# with open("npy/cov_mats_train_tf_stat.npy", mode="wb") as file:
+#     np.save(file, cov_mats_train)
+# with open("npy/chol_mats_train_tf_stat.npy", mode="wb") as file:
+#     np.save(file, chol_mats_train)
 
 # save test covariance matrices and test cholesky matrices
 with open("npy/cov_mats_test_tf_stat.npy", mode="wb") as file:
