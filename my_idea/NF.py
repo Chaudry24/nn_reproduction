@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import some_file_1
 
 # SPATIAL GRID
 x = np.linspace(1, 16, 16)
