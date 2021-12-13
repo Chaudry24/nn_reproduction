@@ -34,6 +34,10 @@ with open("npy/test_y.npy", mode="rb") as file:
     test_sample_indices = np.random.choice(testing_parameter_space.shape[0], n_test_samples, replace=False)
     testing_parameter_space = testing_parameter_space[test_sample_indices]
 
+# SAVE TESTING PARAMETER SUBSET
+with open("npy/test_subset.npy", mode="wb") as file:
+    np.save(file, testing_parameter_space)
+
 # print as a progress update
 print("testing parameters loaded")
 
@@ -49,6 +53,12 @@ cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
 # compute cholesky matrices for training
 chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
+# save train covariance matrices and train cholesky matrices
+with open("npy/cov_mats_train_tf_stat.npy", mode="wb") as file:
+    np.save(file, cov_mats_train)
+with open("npy/chol_mats_train_tf_stat.npy", mode="wb") as file:
+    np.save(file, chol_mats_train)
+
 # GENERATE COVARIANCE MATRICES FOR TESTING SET
 # compute the covariance matrices
 cov_mats_test = np.array([some_file_1.Spatial.compute_covariance
@@ -61,6 +71,13 @@ cov_mats_test = np.array([some_file_1.Spatial.compute_covariance
 # compute cholesky matrices for testing
 chol_mats_test = np.linalg.cholesky(cov_mats_test)
 
+# save test covariance matrices and test cholesky matrices
+with open("npy/cov_mats_test_tf_stat.npy", mode="wb") as file:
+    np.save(file, cov_mats_test)
+with open("npy/chol_mats_test_tf_stat.npy", mode="wb") as file:
+    np.save(file, chol_mats_test)
+
+
 # GENERATE OBSERVATIONS FOR TESTING FOR A SINGLE REALIZATION
 observations_test = (chol_mats_test @ np.random.randn(cov_mats_test.shape[0], cov_mats_test.shape[1], 1)).reshape(cov_mats_test.shape[0], 16, 16, 1)
 semi_variogram_test = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
@@ -68,12 +85,23 @@ semi_variogram_test = np.array([some_file_1.Spatial.compute_semivariogram(spatia
                                                                           realizations=1, bins=10).ravel() for i in
                                 range(testing_parameter_space.shape[0])])
 
+# save test observation and test semivariogram
+with open("npy/test_tf_stat.npy", mode="wb") as file:
+    np.save(file, observations_test)
+with open("npy/test_tf_stat.npy", mode="wb") as file:
+    np.save(file, semi_variogram_test)
 
 # GENERATE OBSERVATIONS FOR TESTING FOR THIRTY REALIZATIONS
 observations_test_30 = (chol_mats_test @ np.random.randn(testing_parameter_space.shape[0], 256, 30)).reshape(testing_parameter_space.shape[0], 16, 16, 30)
 semi_variogram_test_30 = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid, observations_test_30[i, :, :, j].reshape(256, -1)).ravel()
                                    for i in range(testing_parameter_space.shape[0])
                                    for j in range(30)]).reshape(testing_parameter_space.shape[0], -1)
+
+# save test observation and test semivariogram
+with open("npy/test30_tf_stat.npy", mode="wb") as file:
+    np.save(file, observations_test_30)
+with open("npy/test30_semivariogram_tf_stat.npy", mode="wb") as file:
+    np.save(file, semi_variogram_test_30)
 
 
 def negative_log_likelihood(variance, spatial_range, smoothness, nugget,
@@ -262,7 +290,6 @@ model_NV30.save(filepath="./tf_stat_reproduction/NV30")
 
 # ------- COMPUTE MLE FOR A SINGLE REALIZATION ------- #
 
-
 mle_estimates = np.empty([testing_parameter_space.shape[0], 2])
 tmp_array = np.array([negative_log_likelihood
                       (variance=1.0, spatial_range=testing_parameter_space[j, 1],
@@ -320,10 +347,6 @@ for l in range(observations_test_30.shape[0]):
 
 with open("./tf_stat_reproduction/ML30/preds_ML30.npy", mode="wb") as file:
     np.save(file, mle_estimates_30)
-
-# SAVE TESTING PARAMETER SUBSET
-with open("npy/test_subset.npy", mode="wb") as file:
-    np.save(file, testing_parameter_space)
 
 print("\nScript has successfully ended")
 
