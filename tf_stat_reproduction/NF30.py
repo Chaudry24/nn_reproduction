@@ -36,9 +36,12 @@ cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
 # compute cholesky matrices for training
 chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
+# free-up space
+del cov_mats_train
+
 # open test data
-with open("../npy/test30_tf_stat.npy", mode="rb") as file:
-    observations_test_30 = np.load(file)
+#with open("../npy/test30_tf_stat.npy", mode="rb") as file:
+#    observations_test_30 = np.load(file)
 
 # NN architecture
 model_NF30 = tf.keras.Sequential([
@@ -71,8 +74,9 @@ for i in range(n_epochs):
         print(f"generating data for {i}th time (mod 5)")
 
         # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
-        observations_train_30 = (chol_mats_train @ np.random.randn(training_parameter_space.shape[0], 256, 30)).reshape(
-            training_parameter_space.shape[0], 16, 16, 30)
+        z = np.random.randn(training_parameter_space.shape[0], 256, 30)
+        observations_train_30 = (chol_mats_train @ z).reshape(training_parameter_space.shape[0], 16, 16, 30)
+        del z
 
     history_NF30 = model_NF30.fit(x=tf.convert_to_tensor(observations_train_30),
                                   y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
@@ -92,6 +96,13 @@ with open("NF30/training_loss_NF30.npy", mode="wb") as file:
     np.save(file, loss_NF30)
 
 # ------- GET PREDICTIONS FOR NN ------- #
+
+# free-up space
+del chol_mats_train, observations_train_30
+
+# open test data
+with open("../npy/test30_tf_stat.npy", mode="rb") as file:
+    observations_test_30 = np.load(file)
 
 preds_NF30 = model_NF30.predict(x=tf.convert_to_tensor(observations_test_30))
 
