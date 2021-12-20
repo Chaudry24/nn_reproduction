@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import some_file_1
+import joblib
 
 # SPATIAL GRID
 x = np.linspace(1, 16, 16)
@@ -70,12 +71,16 @@ for i in range(n_epochs):
         # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
         observations_train = (chol_mats_train @ np.random.randn(training_parameter_space.shape[0], 256, 1)).reshape(
             training_parameter_space.shape[0], 16, 16, 1)
-        semi_variogram_train = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
-                                                                                   observations_train[i, :].reshape(256,
-                                                                                                                    1),
-                                                                                   realizations=1, bins=10).ravel() for
-                                         i in
-                                         range(training_parameter_space.shape[0])])
+        # semi_variogram_train = np.array([some_file_1.Spatial.compute_semivariogram(spatial_grid,
+        #                                                                            observations_train[i, :].reshape(256,
+        #                                                                                                             1),
+        #                                                                            realizations=1, bins=10).ravel() for
+        #                                  i in
+        #                                  range(training_parameter_space.shape[0])])
+        semi_variogram_train = np.array(joblib.Parallel(-1)(joblib.delayed(some_file_1.Spatial.compute_semivariogram)
+                                                            (spatial_grid, observations_train[i, :].reshape(256, 1),
+                                                             realizations=1, bins=10) for i in
+                                                            range(training_parameter_space.shape[0]))).reshape(training_parameter_space.shape[0], 10)
 
     history_NV = model_NV.fit(x=tf.convert_to_tensor(semi_variogram_train),
                               y=tf.convert_to_tensor(training_parameter_space), batch_size=16,

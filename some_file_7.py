@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # open true values
-with open("./npy/test_my_idea.npy", mode="rb") as file:
+with open("./npy/test_subset_my_idea.npy", mode="rb") as file:
     true_vals = np.load(file)
 
 # open NN loss
