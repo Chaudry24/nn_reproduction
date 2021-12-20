@@ -36,6 +36,9 @@ cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
 # compute cholesky matrices for training
 chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
+# convert train parameters to tensor
+training_parameter_space = tf.convert_to_tensor(training_parameter_space)
+
 # open test data
 with open("../npy/test_tf_stat.npy", mode="rb") as file:
     observations_test = np.load(file)
@@ -66,16 +69,19 @@ for i in range(n_epochs):
     # print start of epoch
     print(f"starting iteration {i}")
 
-    # generate data at every 5th iteration
-    if i % 41 == 0:
-        print(f"generating data for {i}th time (mod 5)")
+    # generate data at every Nth iteration
+    N = 20
+    if i % N == 0:
+        print(f"generating data for {i}th time (mod {N})")
 
         # GENERATE OBSERVATIONS FOR TRAINING FOR A SINGLE REALIZATION
         observations_train = (chol_mats_train @ np.random.randn(training_parameter_space.shape[0], 256, 1)).reshape(training_parameter_space.shape[0], 16, 16, 1)
+        # convert observations to tensor
+        observations_train = tf.convert_to_tensor(observations_train)
 
-    history_NF = model_NF.fit(x=tf.convert_to_tensor(observations_train),
-                              y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                              epochs=20)
+    history_NF = model_NF.fit(x=observations_train,
+                              y=training_parameter_space, batch_size=16,
+                              epochs=3)
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])

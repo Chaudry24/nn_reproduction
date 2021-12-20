@@ -37,6 +37,9 @@ cov_mats_train = np.array([some_file_1.Spatial.compute_covariance
 # compute cholesky matrices for training
 chol_mats_train = np.linalg.cholesky(cov_mats_train)
 
+# convert train parameters to tensor
+training_parameter_space = tf.convert_to_tensor(training_parameter_space)
+
 # open test data
 with open("../npy/test30_semivariogram_my_idea.npy", mode="rb") as file:
     semivariogram_test_30 = np.load(file)
@@ -65,8 +68,9 @@ for i in range(n_epochs):
     print(f"starting iteration {i}")
 
     # generate data at every 5th iteration
-    if i % 41 == 0:
-        print(f"generating data for {i}th time (mod 5)")
+    N = 20
+    if i % N == 0:
+        print(f"generating data for {i}th time (mod {N})")
 
         # GENERATE OBSERVATIONS FOR TRAINING FOR THIRTY REALIZATIONS
         observations_train_30 = (chol_mats_train @ np.random.randn(training_parameter_space.shape[0], 256, 30)).reshape(
@@ -82,10 +86,12 @@ for i in range(n_epochs):
                                                                for i in range(training_parameter_space.shape[0])
                                                                for j in range(30))).reshape(
             training_parameter_space.shape[0], -1)
+        # convert semi variogram to tensor
+        semi_variogram_train_30 = tf.convert_to_tensor(semi_variogram_train_30)
 
-    history_NV30 = model_NV30.fit(x=tf.convert_to_tensor(semi_variogram_train_30),
-                                  y=tf.convert_to_tensor(training_parameter_space), batch_size=16,
-                                  epochs=20)
+    history_NV30 = model_NV30.fit(x=semi_variogram_train_30,
+                                  y=training_parameter_space, batch_size=16,
+                                  epochs=3)
 
     # store losses for each "epoch"
     loss_NV30.append(history_NV30.history["loss"])
