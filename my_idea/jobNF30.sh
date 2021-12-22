@@ -5,7 +5,7 @@
 #SBATCH -N 1 -n 1
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
-#SBATCH --mem=240GB
+#SBATCH --mem=80GB
 #SBATCH --mail-user=machaudry@uh.edu
 #SBATCH --mail-type=END
 

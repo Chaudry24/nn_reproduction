@@ -42,9 +42,6 @@ del cov_mats_train
 # convert train parameters to tensor
 training_parameter_space = tf.convert_to_tensor(training_parameter_space)
 
-# free-up space
-del cov_mats_train
-
 # open test data
 #with open("../npy/test30_tf_stat.npy", mode="rb") as file:
 #    observations_test_30 = np.load(file)
