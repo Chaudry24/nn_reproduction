@@ -2,7 +2,7 @@ import matplotlib.colors
 import numpy as np
 import numpy
 # import cupy as cp
-import skgstat.estimators
+# import skgstat.estimators
 from scipy.special import gamma, kv
 import sklearn.metrics.pairwise
 import matplotlib.pyplot as plt
@@ -165,7 +165,7 @@ class Spatial:
 
     @staticmethod
     def compute_semivariogram(coordinates, observations, realizations=1, bins=10):
-        print("\ncomputing semivariogram\n")
+        # print("\ncomputing semivariogram\n")
         """Returns the empirical variogram given the coordinates and observations"""
         # initialize empty array to save semivariogram values
         variogram = np.empty((10, realizations))

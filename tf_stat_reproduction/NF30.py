@@ -73,7 +73,7 @@ for i in range(n_epochs):
     print(f"starting iteration {i}")
 
     # generate data at every 5th iteration
-    N = 20
+    N = 1
     if i % N == 0:
         print(f"generating data for {i}th time (mod {N})")
 
@@ -86,7 +86,7 @@ for i in range(n_epochs):
 
     history_NF30 = model_NF30.fit(x=observations_train_30,
                                   y=training_parameter_space, batch_size=16,
-                                  epochs=3)
+                                  epochs=1)
 
     # store losses for each "epoch"
     loss_NF30.append(history_NF30.history["loss"])
@@ -119,4 +119,4 @@ with open("NF30/preds_NF30.npy", mode="wb") as file:
 
 # ------- SAVE TRAINED NN ------- #
 
-model_NF30.save(filepath="./NF30")
+model_NF30.save(filepath="./NF30/NF30_model.h5")

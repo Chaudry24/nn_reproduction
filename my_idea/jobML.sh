@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -J ml_my_job
-#SBATCH -o ml_my.o%j
+#SBATCH -J ml_tf_job
+#SBATCH -o ml_tf.o%j
 #SBATCH -t 48:00:00
 #SBATCH -N 1 -n 1
 ##SBATCH -p gpu

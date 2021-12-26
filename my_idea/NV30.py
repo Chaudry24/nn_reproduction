@@ -91,7 +91,7 @@ for i in range(n_epochs):
 
     history_NV30 = model_NV30.fit(x=semi_variogram_train_30,
                                   y=training_parameter_space, batch_size=16,
-                                  epochs=3)
+                                  epochs=1)
 
     # store losses for each "epoch"
     loss_NV30.append(history_NV30.history["loss"])
@@ -117,4 +117,4 @@ with open("NV30/preds_NV30.npy", mode="wb") as file:
 
 # ------- SAVE TRAINED NN ------- #
 
-model_NV30.save(filepath="./NV30")
+model_NV30.save(filepath="./NV30/NV30_model.h5")
