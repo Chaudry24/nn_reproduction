@@ -52,7 +52,7 @@ training_parameter_space = tf.convert_to_tensor(training_parameter_space)
 
 # NN architecture
 model_NF30 = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(filters=128, kernel_size=10, input_shape=(16, 16, 30), activation="relu",
+    tf.keras.layers.Conv2D(filters=128, kernel_size=10, input_shape=(16, 16, 1), activation="relu",
                            data_format="channels_last"),
     tf.keras.layers.Conv2D(filters=128, kernel_size=5, activation="relu"),
     tf.keras.layers.Conv2D(filters=128, kernel_size=3, activation="relu"),
@@ -85,12 +85,53 @@ for i in range(n_epochs):
         z = np.random.randn(training_parameter_space.shape[0], 256, 30)
         observations_train_30 = (chol_mats_train @ z).reshape(training_parameter_space.shape[0], 16, 16, 30)
         # convert observations to tensors
-        observations_train_30 = tf.convert_to_tensor(observations_train_30)
+        # observations_train_30 = tf.convert_to_tensor(observations_train_30)
         del z
 
-    history_NF30 = model_NF30.fit(x=observations_train_30,
-                                  y=training_parameter_space, batch_size=16,
-                                  epochs=1)
+    tmp = tf.convert_to_tensor(observations_train_30)
+
+    # fit model with original images
+    for i in range(30):
+        history_NF30 = model_NF30.fit(x=tf.expand_dims(tmp[:, :, :, i], 3),
+                                      y=training_parameter_space, batch_size=16,
+                                      epochs=1)
+    del tmp
+    # fit model with row-wise flipped images
+    # tmp = tf.convert_to_tensor(np.flip(observations_train_30, axis=[1]))
+    # history_NF30 = model_NF30.fit(x=tmp,
+    #                           y=training_parameter_space, batch_size=16,
+    #                           epochs=1)
+    # del tmp 
+    # fit model with column-wise flipped images
+    # tmp = tf.convert_to_tensor(np.flip(observations_train_30, axis=[2]))
+    # history_NF30 = model_NF30.fit(x=tmp,
+    #                           y=training_parameter_space, batch_size=16,
+    #                           epochs=1)
+    # del tmp
+    # fit model with row and column-wise flipped images
+    # tmp = tf.convert_to_tensor(np.flip(observations_train_30, axis=[1, 2]))
+    # history_NF30 = model_NF30.fit(x=tmp,
+    #                           y=training_parameter_space, batch_size=16,
+    #                           epochs=1)
+    # del tmp
+    # fit model with transposed images
+    # tmp = tf.convert_to_tensor(np.transpose(observations_train_30, axes=[0, 2, 1, 3]))
+    # history_NF30 = model_NF30.fit(x=tmp,
+    #                           y=training_parameter_space, batch_size=16,
+    #                           epochs=1)
+    # del tmp
+    # fit model with transpose of row-wise flipped images
+    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train_30, axis=[1]), axes=[0, 2, 1, 3]))
+    # history_NF30 = model_NF30.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    # del tmp
+    # fit model with transpose of column-wise flipped images
+    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train_30, axis=[2]), axes=[0, 2, 1, 3]))
+    # history_NF30 = model_NF30.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    # del tmp
+    # fit model with transpose of row and column-wise flipped images
+    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train_30, axis=[1, 2]), axes=[0, 2, 1, 3]))
+    # history_NF30 = model_NF30.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    # del tmp
 
     # store losses for each "epoch"
     loss_NF30.append(history_NF30.history["loss"])
@@ -114,7 +155,17 @@ del chol_mats_train, observations_train_30
 with open("../npy/test30_my_idea.npy", mode="rb") as file:
     observations_test_30 = tf.convert_to_tensor(np.load(file))
 
-preds_NF30 = model_NF30.predict(x=observations_test_30)
+preds_NF30 = np.empty((observations_test_30, 2))
+
+for j in range(observations_test_30.shape[0]):
+    tmp = np.empty((30, 2))
+    for i in range(30):
+        tmp2 = model_NF30.predict(x=tf.expand_dims(tf.convert_to_tensor(observations_test_30)[j, :, :, i], 2))
+        tmp[i, 0] = tmp2[0][0]
+        tmp[i, 1] = tmp2[1][0]
+    avg_preds = np.average(tmp, 0)
+    preds_NF30[j, 0] = avg_preds[0]
+    preds_NF30[j, 1] = avg_preds[1]
 
 # ------- SAVE PREDICTIONS FOR NN ------- #
 

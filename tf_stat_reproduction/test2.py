@@ -89,7 +89,7 @@ for i in range(n_epochs):
                                   epochs=1)
 
     # store losses for each "epoch"
-    loss_NF30[i] = history_NF30.history["loss"]
+    loss_NF30[i] = history_NF30.history["loss"][0]
 
     # print end of epoch
     print(f"iteration {i} ended with loss {loss_NF30[i]}")
