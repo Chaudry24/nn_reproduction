@@ -87,41 +87,41 @@ for i in range(n_epochs):
                                   epochs=1)
     del tmp
     # fit model with row-wise flipped images
-    # tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[1]))
-    # history_NF = model_NF.fit(x=tmp,
-    #                           y=training_parameter_space, batch_size=16,
-    #                           epochs=1)
-    # del tmp 
+    tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[1]))
+    history_NF = model_NF.fit(x=tmp,
+                              y=training_parameter_space, batch_size=16,
+                              epochs=1)
+    del tmp 
     # fit model with column-wise flipped images
-    # tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[2]))
-    # history_NF = model_NF.fit(x=tmp,
-    #                           y=training_parameter_space, batch_size=16,
-    #                           epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[2]))
+    history_NF = model_NF.fit(x=tmp,
+                              y=training_parameter_space, batch_size=16,
+                              epochs=1)
+    del tmp
     # fit model with row and column-wise flipped images
-    # tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[1, 2]))
-    # history_NF = model_NF.fit(x=tmp,
-    #                           y=training_parameter_space, batch_size=16,
-    #                           epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.flip(observations_train, axis=[1, 2]))
+    history_NF = model_NF.fit(x=tmp,
+                              y=training_parameter_space, batch_size=16,
+                              epochs=1)
+    del tmp
     # fit model with transposed images
-    # tmp = tf.convert_to_tensor(np.transpose(observations_train, axes=[0, 2, 1, 3]))
-    # history_NF = model_NF.fit(x=tmp,
-    #                           y=training_parameter_space, batch_size=16,
-    #                           epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.transpose(observations_train, axes=[0, 2, 1, 3]))
+    history_NF = model_NF.fit(x=tmp,
+                              y=training_parameter_space, batch_size=16,
+                              epochs=1)
+    del tmp
     # fit model with transpose of row-wise flipped images
-    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[1]), axes=[0, 2, 1, 3]))
-    # history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[1]), axes=[0, 2, 1, 3]))
+    history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    del tmp
     # fit model with transpose of column-wise flipped images
-    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[2]), axes=[0, 2, 1, 3]))
-    # history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[2]), axes=[0, 2, 1, 3]))
+    history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    del tmp
     # fit model with transpose of row and column-wise flipped images
-    # tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[1, 2]), axes=[0, 2, 1, 3]))
-    # history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
-    # del tmp
+    tmp = tf.convert_to_tensor(np.transpose(np.flip(observations_train, axis=[1, 2]), axes=[0, 2, 1, 3]))
+    history_NF = model_NF.fit(x=tmp, y=training_parameter_space, batch_size=16, epochs=1)
+    del tmp
 
     # store losses for each "epoch"
     loss_NF.append(history_NF.history["loss"])
