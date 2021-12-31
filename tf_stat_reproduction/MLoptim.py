@@ -36,7 +36,7 @@ cons = ({"type": "ineq",
 
 @retry(np.linalg.LinAlgError, tries=-1, backoff=0, delay=0)
 def mle():
-    optimal_vals = scipy.optimize.minimize(fun=func, x0=np.random.uniform(0.1, 0.7, 2),
+    optimal_vals = scipy.optimize.minimize(fun=func, x0=np.random.uniform(0.5, 1.5, 2),
                                            constraints=cons, method="SLSQP",
                                            options={"maxiter": int(1e4)})
     return optimal_vals.x
@@ -44,6 +44,7 @@ def mle():
 
 mle_optim = np.empty((observations_test.shape[0], 2))
 for i in range(observations_test.shape[0]):
+    print(f"\nStarting MLE for {i}th test sample")
     data = observations_test[i, :].ravel()
     func = lambda x: objective_func(data, spatial_dist, variance=1.0, spatial_range=x[1], smoothness=1.0, nugget=x[0])
     results = mle()
