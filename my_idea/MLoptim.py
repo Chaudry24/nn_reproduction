@@ -25,7 +25,7 @@ grid = np.array([x.ravel(), y.ravel()]).T
 spatial_dist = some_file_1.Spatial.compute_distance(grid[:, 0], grid[:, 1])
 
 # open test data
-with open("../npy/test_tf_stat.npy", mode="rb") as file:
+with open("../npy/test_my_idea.npy", mode="rb") as file:
     observations_test = np.load(file)
 
 cons = ({"type": "ineq",
