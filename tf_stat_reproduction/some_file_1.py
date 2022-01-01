@@ -113,12 +113,15 @@ class Spatial:
             if min(np.real(np.linalg.eigvals(matern_covariance))) <= 0:
                 # this makes the matrix pd
                 print("matrix is not positive definite. Making it positive definite now")
+                tmp_mat = (matern_covariance + matern_covariance.T) / 2
                 # compute eigendecom
-                d, p = np.linalg.eig(matern_covariance)
+                d, p = np.linalg.eig(tmp_mat)
                 # make non-positive eigen vals positive
                 d[d <= 0] = 1e-6
                 # use P @ D @ P^-1 to get a pd matrix
                 matern_covariance = p @ np.diag(d) @ np.linalg.inv(p)
+            else:
+                print("this matrix is PD")
             return matern_covariance
         else:
             pass
