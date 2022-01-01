@@ -110,7 +110,7 @@ class Spatial:
             # # add a small perturbation/nugget effect for numerical stability
             # # matern_covariance += 1e-3 * np.eye(n_points)
             # compute eigenvals and force to rerun if val <= 0
-            if min(np.linalg.eigvals(matern_covariance)) <= 0:
+            if min(np.real(np.linalg.eigvals(matern_covariance))) <= 0:
                 # this forces error and reruns the function
                 print("matrix is not positive definite. Rerunning function")
                 raise numpy.linalg.LinAlgError("Matrix is not positive definite")
