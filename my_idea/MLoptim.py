@@ -36,8 +36,8 @@ cons = ({"type": "ineq",
 
 @retry(np.linalg.LinAlgError, tries=-1, backoff=0, delay=0)
 def mle():
-    optimal_vals = scipy.optimize.minimize(fun=func, x0=np.random.uniform(0.1, 10.0, 2),
-                                           constraints=cons, method="L-BFGS-B",
+    optimal_vals = scipy.optimize.minimize(fun=func, x0=np.random.uniform(0.1, 1.0, 2),
+                                           constraints=cons, method="SLSQP",
                                            options={"maxiter": int(1e4)})
     return optimal_vals.x
 

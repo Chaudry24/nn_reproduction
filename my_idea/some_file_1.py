@@ -81,7 +81,7 @@ class Spatial:
             return distance_matrix
 
     @staticmethod
-    @retry(numpy.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
+    # @retry(numpy.linalg.LinAlgError, tries=-1, delay=0, backoff=0)
     def compute_covariance(covariance_type, distance_matrix,
                            variance, smoothness, spatial_range, nugget,
                            n_points=256):
