@@ -111,9 +111,14 @@ class Spatial:
             # # matern_covariance += 1e-3 * np.eye(n_points)
             # compute eigenvals and force to rerun if val <= 0
             if min(np.real(np.linalg.eigvals(matern_covariance))) <= 0:
-                # this forces error and reruns the function
-                print("matrix is not positive definite. Rerunning function")
-                raise numpy.linalg.LinAlgError("Matrix is not positive definite")
+                # this makes the matrix pd
+                print("matrix is not positive definite. Making it positive definite now")
+                # compute eigendecom
+                d, p = np.linalg.eig(matern_covariance)
+                # make non-positive eigen vals positive
+                d[d <= 0] = 1e-6
+                # use P @ D @ P^-1 to get a pd matrix
+                matern_covariance = p @ np.diag(d) @ np.linalg.inv(p)
             return matern_covariance
         else:
             pass
