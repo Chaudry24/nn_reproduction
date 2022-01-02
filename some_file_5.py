@@ -34,9 +34,9 @@ with open("./tf_stat_reproduction/ML30/preds_ML30.npy", mode="rb") as file:
 # open MLEoptim preds
 with open("./tf_stat_reproduction/MLoptim/MLoptim.npy", mode="rb") as file:
     mloptim_preds = np.load(file)
-with open("./tf_stat_reproduction/ML30optim/ML30optim.npy", mode="rb") as file:
-    ml30optim_preds = np.load(file)
-# ml30optim_preds = np.random.randn(500, 2)
+# with open("./tf_stat_reproduction/ML30optim/ML30optim.npy", mode="rb") as file:
+#     ml30optim_preds = np.load(file)
+ml30optim_preds = np.random.randn(500, 2)
 
 # plot NN loss
 plt.figure()
