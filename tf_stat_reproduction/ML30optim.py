@@ -56,5 +56,5 @@ for i in range(observations_test_30.shape[0]):
     mle_optim_30[i, 0] = average_vals[0]
     mle_optim_30[i, 1] = average_vals[1]
 
-with open("./ML30optim/ML30optim.npy", mode="rb") as file:
+with open("./ML30optim/ML30optim.npy", mode="wb") as file:
     np.save(file, mle_optim_30)
