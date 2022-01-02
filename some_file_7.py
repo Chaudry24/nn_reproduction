@@ -32,9 +32,9 @@ with open("./my_idea/ML30/preds_ML30.npy", mode="rb") as file:
     ml30_preds = np.load(file)
 
 # open MLEoptim preds
-with open("./tf_stat_reproduction/MLoptim/MLoptim.npy", mode="rb") as file:
+with open("./my_idea/MLoptim/MLoptim.npy", mode="rb") as file:
     mloptim_preds = np.load(file)
-# with open("./tf_stat_reproduction/ML30optim/ML30optim.npy", mode="rb") as file:
+# with open("./my_idea/ML30optim/ML30optim.npy", mode="rb") as file:
 #     ml30optim_preds = np.load(file)
 ml30optim_preds = np.random.randn(500, 2)
 
