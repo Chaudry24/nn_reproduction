@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J ml30optim_tf_job
 #SBATCH -o ml30optim_tf.o%j
-#SBATCH -t 48:00:00
+#SBATCH -t 7-00:00:00
 #SBATCH -N 1 -n 1
 ##SBATCH -p gpu
 ##SBATCH --gres=gpu:1
