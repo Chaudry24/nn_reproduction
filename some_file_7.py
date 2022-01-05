@@ -34,9 +34,10 @@ with open("./my_idea/ML30/preds_ML30.npy", mode="rb") as file:
 # open MLEoptim preds
 with open("./my_idea/MLoptim/MLoptim.npy", mode="rb") as file:
     mloptim_preds = np.load(file)
-# with open("./my_idea/ML30optim/ML30optim.npy", mode="rb") as file:
-#     ml30optim_preds = np.load(file)
-ml30optim_preds = np.random.randn(500, 2)
+with open("./my_idea/ML30optim/ML30optim.npy", mode="rb") as file:
+    ml30optim_preds = np.load(file)
+    ml30optim_preds = np.nan_to_num(ml30optim_preds, copy=True, nan=0, neginf=0,
+                                    posinf=0)
 
 # plot NN loss
 plt.figure()
